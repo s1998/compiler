@@ -176,7 +176,7 @@ char    *term()
     tempvar = factor();
     while( match( MULT ) || match( DIV ))
     {
-        char c = match(PLUS) ? '*' : '/';
+        char c = match(MULT) ? '*' : '/';
         advance();
         tempvar2 = factor();
         code_line_no++;
@@ -261,13 +261,17 @@ void parse(char* line)
     {
         sscanf(line, "%s %[+-*/=] %s", reg1, c, reg2);
         if (!strcmp(c, "+="))
-            printf("ADD %s %s\n", reg1, reg2);
+            //printf("ADD %s %s\n", reg1, reg2);
+        	printf("PUSH A \nMOV A %s\nADD %s\nMOV %s A\nPOP A\n", reg1, reg2, reg1);
         else if (!strcmp(c, "-="))
-            printf("SUB %s %s\n", reg1, reg2);
+            //printf("SUB %s %s\n", reg1, reg2);
+            printf("PUSH A \nMOV A %s\nSUB %s\nMOV %s A\nPOP A\n", reg1, reg2, reg1);
         else if (!strcmp(c, "*="))
-            printf("MUL %s %s\n", reg1, reg2);
+            //printf("MUL %s %s\n", reg1, reg2);
+        	printf("PUSH A \nMVI C 00\nLDA %s\nMOV B A\nLDA %s\nMOV D A\nMVI A 00\nlabel_mul : ADD B\nDCR D\nJNZ label_mul\nJNC loop\nINR C\nloop : STA E\nMOV A,C\nSTA F\nHLT\nMOV %s E\nPOP A\n", reg1, reg2,reg1);
         else if (!strcmp(c, "/="))
-            printf("DIV %s %s\n", reg1, reg2);
+            //printf("DIV %s %s\n", reg1, reg2);
+            printf("PUSH A \nMVI C 00\nMOV B %s\nLDA %s\nNext : CMP B\nJC loop_div\nSUB B\nINR C\nJMP Next\nloop_div :STA E\nMOV A,C\nSTA %s\nHLT\nPOP A\n", reg1, reg2,reg1);
         else if (!strcmp(c, "=") )
             printf("MOV %s %s\n", reg1, reg2);
     }
@@ -333,19 +337,19 @@ void parse_main(char* line, char* paradigm)
             printf("%d \n", end_line_no);
             line = strtok(NULL, "\n");
             parse_main(line, "FI");
-            printf(" label%d : \n", end_line_no);
+            printf("label%d : \n", end_line_no);
         }
         else if(strstr(line, "WHILE"))
         {
             while(!(line = strtok(NULL, " \n")));
             int start_line_no = atoi(line);
             int end_line_no = lookup(t, start_line_no);
-            printf(" label%d : \n", start_line_no);
+            printf("label%d : \n", start_line_no);
             parse_main(line, "DO");
             printf("%d \n", end_line_no);
             parse_main(line, "DONE");
             printf("STC \nJC  label%d\n", start_line_no);
-            printf(" label%d : \n", end_line_no);
+            printf("label%d : \n", end_line_no);
         }
         else if(strstr(line, "BEGIN"))
         {
