@@ -219,7 +219,7 @@ void gen_ic()
     filename_ic = fopen(filename_ic_name, "w");
     read_code();
     statements();    
-    read_table(table);
+    // read_table(table);
     fclose(filename_ic);
 
 }
@@ -246,15 +246,37 @@ void read_file(char* filename_ip, char** buffer)
    } 
 }
 
+char * convert(char * reg){
+    if(!strcmp("t0" , reg))
+        return "B";
+    if(!strcmp("t1" , reg))
+        return "C";
+    if(!strcmp("t2" , reg))
+        return "D";
+    if(!strcmp("t3" , reg))
+        return "E";
+    if(!strcmp("t4" , reg))
+        return "H";
+    if(!strcmp("t5" , reg))
+        return "L";
+    if(!strcmp("t6" , reg))
+        return "A";
+    if(!strcmp("t7" , reg))
+        return "A";
+
+    // printf(":%s:\n",reg);
+    return reg;
+}
+
 void parse(char* line)
 {   
     char reg1[10], reg2[10], c[5];
     if(strstr(line, "<") || strstr(line, ">") || strstr(line , "=="))
     {
         sscanf(line, "%s %[<>=] %s", reg1, c, reg2);
-        if(!strcmp(c, "<")) printf("PUSH A \nMOV A %s\nCMP %s \nPOP A\nJNC label", reg1, reg2);
-        else if(!strcmp(c, ">")) printf("PUSH A \nMOV A %s\nCMP %s \nPOP A\nJNC label", reg2, reg1);
-        else printf("PUSH A \nMOV A %s\nCMP %s \nPOP A\nJNZ label", reg2, reg1);
+        if(!strcmp(c, "<")) printf("PUSH A \nMOV A %s\nCMP %s \nPOP A\nJNC label", convert(reg1), convert(reg2));
+        else if(!strcmp(c, ">")) printf("PUSH A \nMOV A %s\nCMP %s \nPOP A\nJNC label", convert(reg2), convert(reg1));
+        else printf("PUSH A \nMOV A %s\nCMP %s \nPOP A\nJNZ label", convert(reg2), convert(reg1));
 
     }
     else 
@@ -262,21 +284,23 @@ void parse(char* line)
         sscanf(line, "%s %[+-*/=] %s", reg1, c, reg2);
         if (!strcmp(c, "+="))
             //printf("ADD %s %s\n", reg1, reg2);
-        	printf("PUSH A \nMOV A %s\nADD %s\nMOV %s A\nPOP A\n", reg1, reg2, reg1);
+        	printf("PUSH A \nMOV A %s\nADD %s\nMOV %s A\nPOP A\n", convert(reg1), convert(reg2), convert(reg1));
         else if (!strcmp(c, "-="))
-            //printf("SUB %s %s\n", reg1, reg2);
-            printf("PUSH A \nMOV A %s\nSUB %s\nMOV %s A\nPOP A\n", reg1, reg2, reg1);
+            //printf("SUB %s %s\n", convert(reg1), convert(reg2));
+            printf("PUSH A \nMOV A %s\nSUB %s\nMOV %s A\nPOP A\n", convert(reg1), convert(reg2), convert(reg1));
         else if (!strcmp(c, "*="))
-            //printf("MUL %s %s\n", reg1, reg2);
-        	printf("PUSH A \nMVI C 00\nLDA %s\nMOV B A\nLDA %s\nMOV D A\nMVI A 00\nlabel_mul : ADD B\nDCR D\nJNZ label_mul\nJNC loop\nINR C\nloop : STA E\nMOV A,C\nSTA F\nHLT\nMOV %s E\nPOP A\n", reg1, reg2,reg1);
+            //printf("MUL %s %s\n", convert(reg1), convert(reg2));
+        	printf("PUSH A \nMVI C 00\nLDA %s\nMOV B A\nLDA %s\nMOV D A\nMVI A 00\nlabel_mul : ADD B\nDCR D\nJNZ label_mul\nJNC loop\nINR C\nloop : STA E\nMOV A,C\nSTA F\nHLT\nMOV %s E\nPOP A\n", convert(reg1), convert(reg2),convert(reg1));
         else if (!strcmp(c, "/="))
-            //printf("DIV %s %s\n", reg1, reg2);
-            printf("PUSH A \nMVI C 00\nMOV B %s\nLDA %s\nNext : CMP B\nJC loop_div\nSUB B\nINR C\nJMP Next\nloop_div :STA E\nMOV A,C\nSTA %s\nHLT\nPOP A\n", reg1, reg2,reg1);
+            //printf("DIV %s %s\n", convert(reg1), convert(reg2));
+            printf("PUSH A \nMVI C 00\nMOV B %s\nLDA %s\nNext : CMP B\nJC loop_div\nSUB B\nINR C\nJMP Next\nloop_div :STA E\nMOV A,C\nSTA %s\nHLT\nPOP A\n", convert(reg1), convert(reg2),convert(reg1));
         else if (!strcmp(c, "=") )
-            printf("MOV %s %s\n", reg1, reg2);
+            printf("MOV %s %s\n", convert(reg1), convert(reg2));
     }
 
 }
+
+
 
 // void parse_if()
 // {
@@ -309,14 +333,14 @@ void parse_main(char* line, char* paradigm)
             char reg[5];
             char var_name[100];
             sscanf(line, " %s = %s ", reg, var_name);
-            // printf(" --------------- %s %s\n", reg, var_name);
+            // printf(" --------------- %s %s\n", convert(reg), var_name);
             printf("LDA %s\n", var_name);
-            printf("MOV %s A\n", reg);
+            printf("MOV %s A\n", convert(reg));
             while(line = strtok(NULL, "\n"))
             {
                 if(strstr(line, "assign_operation_ends"))
                 {
-                    printf("MOV A %s \n", reg);
+                    printf("MOV A %s \n", convert(reg));
                     printf("SDA %s\n", var_name);
                     break;
                 }
@@ -365,9 +389,12 @@ void gen_ac()
     read_file(filename_ic_name, &ic);
     char* line = strtok(ic, "\n");
     parse_main(line, "Nada");
+
 }
 
 int main()
 {
     gen_ac();
+    // FILE *fp = fopen(filename_ic_name,"a");
+    // while(fgets(fp))
 }
