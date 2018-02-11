@@ -18,6 +18,7 @@ factor -> num | id | ( expression )
 
 ## Running the sample code
 
+To run code, write in samplecode file and execute code_gen_advamced.
 Sample test cases are present in sample_test. 
 Code :
 ```
@@ -97,7 +98,16 @@ SDA _a
 ## Implementation details 
 
 Symbol table is stored using linked list.
+
 Hashmap is used to store the ending pairs of if-fi, while-do-done and begin-end. 
+
+Files :
+
+lex.h and lex.c : Used for lexical analysis.
+
+code_gen_advanced.c : Used to generate the assembly code.
+
+hashmap.c and list.c : Used for hashmap and list implementation.
 
 ## References
 For hashmap, source : http://www.kaushikbaruah.com/posts/data-structure-in-c-hashmap/
