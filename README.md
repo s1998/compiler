@@ -103,4 +103,5 @@ Hashmap is used to store the ending pairs of if-fi, while-do-done and begin-end.
 For hashmap, source : http://www.kaushikbaruah.com/posts/data-structure-in-c-hashmap/
 Initial (basic) source code was given as part of assignment of cs347.
 
+## Contributors
 Ankit Kumar Singh, Shubhanshu Verma, Sudhanshu Ranjan.
