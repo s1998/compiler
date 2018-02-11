@@ -1,0 +1,346 @@
+if a > 5 then begin  if a < 4 then a := 2; a := 6; a := 7; end
+
+while a < 5 do a:=6; b := y+7;
+
+****
+begin a := 7; a := 8; end
+****
+LDA _a
+MOV B A
+MOV C _7
+MOV B C
+MOV A B 
+SDA _a
+LDA _a
+MOV C A
+MOV B _8
+MOV C B
+MOV A C 
+SDA _a
+****
+
+****
+a := 7; b := a + 8;
+****
+LDA _a
+MOV B A
+MOV C _7
+MOV B C
+MOV A B 
+SDA _a
+LDA _b
+MOV C A
+MOV B _a
+MOV D _8
+PUSH A 
+MOV A B
+ADD D
+MOV B A
+POP A
+MOV C B
+MOV A C 
+SDA _b
+****
+
+
+
+****
+a := 7;
+while b < 100 do begin b := a + 8; end
+a := 0;
+****
+LDA _a
+MOV B A
+MOV C _7
+MOV B C
+MOV A B 
+SDA _a
+label7 : 
+MOV C _b
+MOV B _100
+PUSH A 
+MOV A C
+CMP B 
+POP A
+JNC label20 
+LDA _b
+MOV B A
+MOV D _a
+MOV E _8
+PUSH A 
+MOV A D
+ADD E
+MOV D A
+POP A
+MOV B D
+MOV A B 
+SDA _b
+STC 
+JC  label7
+label20 : 
+LDA _a
+MOV C A
+MOV D _0
+MOV C D
+MOV A C 
+SDA _a
+****
+
+
+
+****
+if a > 5 then if a > 10 then a := 5; 
+b := 7;
+****
+MOV B _a
+MOV C _5
+PUSH A 
+MOV A C
+CMP B 
+POP A
+JNC label17 
+MOV C _a
+MOV D _10
+PUSH A 
+MOV A D
+CMP C 
+POP A
+JNC label16 
+LDA _a
+MOV D A
+MOV E _5
+MOV D E
+MOV A D 
+SDA _a
+label16 : 
+label17 : 
+LDA _b
+MOV B A
+MOV C _7
+MOV B C
+MOV A B 
+SDA _b
+****
+
+
+****
+if a > 5 then while a > 5 do a := a - 1; 
+b := 7;
+****
+MOV B _a
+MOV C _5
+PUSH A 
+MOV A C
+CMP B 
+POP A
+JNC label19 
+label7 : 
+MOV C _a
+MOV D _5
+PUSH A 
+MOV A D
+CMP C 
+POP A
+JNC label18 
+LDA _a
+MOV D A
+MOV E _a
+MOV H _1
+PUSH A 
+MOV A E
+SUB H
+MOV E A
+POP A
+MOV D E
+MOV A D 
+SDA _a
+STC 
+JC  label7
+label18 : 
+label19 : 
+LDA _b
+MOV B A
+MOV C _7
+MOV B C
+MOV A B 
+SDA _b
+****
+
+
+
+
+
+****
+i := 0;
+a := 1;
+b := 1;
+while i < 100 do begin c := a + b; a := b; b := c; i := i + 1; end
+****
+LDA _i
+MOV B A
+MOV C _0
+MOV B C
+MOV A B 
+SDA _i
+LDA _a
+MOV C A
+MOV B _1
+MOV C B
+MOV A C 
+SDA _a
+LDA _b
+MOV B A
+MOV C _1
+MOV B C
+MOV A B 
+SDA _b
+label17 : 
+MOV C _i
+MOV B _100
+PUSH A 
+MOV A C
+CMP B 
+POP A
+JNC label47 
+LDA _c
+MOV B A
+MOV D _a
+MOV E _b
+PUSH A 
+MOV A D
+ADD E
+MOV D A
+POP A
+MOV B D
+MOV A B 
+SDA _c
+LDA _a
+MOV D A
+MOV B _b
+MOV D B
+MOV A D 
+SDA _a
+LDA _b
+MOV B A
+MOV D _c
+MOV B D
+MOV A B 
+SDA _b
+LDA _i
+MOV D A
+MOV B _i
+MOV E _1
+PUSH A 
+MOV A B
+ADD E
+MOV B A
+POP A
+MOV D B
+MOV A D 
+SDA _i
+STC 
+JC  label17
+label47 :
+****
+
+
+
+****
+a := 1;
+b := 2;
+if a < b then if a < 10 then while a < 100 do begin a := a + b; b := b + 1; end
+****
+LDA _a
+MOV B A
+MOV C _1
+MOV B C
+MOV A B 
+SDA _a
+LDA _b
+MOV C A
+MOV B _2
+MOV C B
+MOV A C 
+SDA _b
+MOV B _a
+MOV C _b
+PUSH A 
+MOV A B
+CMP C 
+POP A
+JNC label44 
+MOV C _a
+MOV D _10
+PUSH A 
+MOV A C
+CMP D 
+POP A
+JNC label43 
+label22 : 
+MOV D _a
+MOV E _100
+PUSH A 
+MOV A D
+CMP E 
+POP A
+JNC label42 
+LDA _a
+MOV E A
+MOV H _a
+MOV L _b
+PUSH A 
+MOV A H
+ADD L
+MOV H A
+POP A
+MOV E H
+MOV A E 
+SDA _a
+LDA _b
+MOV H A
+MOV E _b
+MOV L _1
+PUSH A 
+MOV A E
+ADD L
+MOV E A
+POP A
+MOV H E
+MOV A H 
+SDA _b
+STC 
+JC  label22
+label42 : 
+label43 : 
+label44 :
+****
+
+
+****
+begin end
+****
+****
+
+
+
+
+
+
+****
+
+****
+****
+
+
+
+
+
+
+
+
+
+
+
+
+
+
