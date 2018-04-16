@@ -1,0 +1,34 @@
+if a > 5 then begin  if a < 4 then a := 2; a := 6; a := 7; end
+while a < 5 do a:=6; b := y+7;
+
+if a > 5 then a := 5 else a:= 7
+b := 7
+MOV B _a
+MOV C _5
+PUSH A 
+MOV A C
+CMP B 
+POP A
+JNC label17 
+MOV C _a
+MOV D _10
+PUSH A 
+MOV A D
+CMP C 
+POP A
+JNC label16 
+LDA _a
+MOV D A
+MOV E _5
+MOV D E
+MOV A D 
+SDA _a
+label16 : 
+label17 : 
+LDA _b
+MOV B A
+MOV C _7
+MOV B C
+MOV A B 
+SDA _b
+

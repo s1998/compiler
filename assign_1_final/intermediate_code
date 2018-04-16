@@ -1,0 +1,44 @@
+ 1 
+  IF 
+ 2 
+   t0 = _a
+ 3 
+   t1 = _5
+ 4 
+   t0 > t1
+ 5 
+  THEN 
+ 6 
+  IF 
+ 7 
+   t1 = _a
+ 8 
+   t2 = _10
+ 9 
+   t1 > t2
+ 10 
+  THEN 
+ 11 
+   assign_operation
+ 12 
+   t2 = _a
+ 13 
+   t3 = _5
+ 14 
+   t2 = t3
+ 15 
+   assign_operation_ends
+ 16 
+ FI 
+ 17 
+ FI 
+ 18 
+   assign_operation
+ 19 
+   t0 = _b
+ 20 
+   t1 = _7
+ 21 
+   t0 = t1
+ 22 
+   assign_operation_ends

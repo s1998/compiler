@@ -1,0 +1,2 @@
+mem1 = Memory(memory_type='primary', mem_size = 512)
+processor_array1[i] = Processor( isa = 'ARM', clock_speed : 40, l1_memory = mem1)

@@ -1,0 +1,1 @@
+mem1 = Memory(memory_type='primary', mem_size = 512)

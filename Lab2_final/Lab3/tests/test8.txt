@@ -1,0 +1,8 @@
+if (job_1.get_memory() <= ram.get_available_memory())
+{
+	proc_1.submit_jobs(job_1)
+}
+else
+{
+	discard_job(job_1)
+}
