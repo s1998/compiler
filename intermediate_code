@@ -1,94 +1,10 @@
  1 
-  IF 
+   assign_operation
  2 
    t0 = _a
  3 
-   t1 = _5
+   t1 = _1
  4 
-   t0 > t1
+   t0 = t1
  5 
-  THEN 
- 6 
-  BEGIN
- 7 
-  IF 
- 8 
-   t1 = _a
- 9 
-   t2 = _4
- 10 
-   t1 < t2
- 11 
-  THEN 
- 12 
-   assign_operation
- 13 
-   t2 = _a
- 14 
-   t3 = _2
- 15 
-   t2 = t3
- 16 
-   assign_operation_ends
- 17 
- FI 
- 18 
-   assign_operation
- 19 
-   t1 = _a
- 20 
-   t3 = _6
- 21 
-   t1 = t3
- 22 
-   assign_operation_ends
- 23 
-   assign_operation
- 24 
-   t3 = _a
- 25 
-   t1 = _7
- 26 
-   t3 = t1
- 27 
-   assign_operation_ends
- 28 
-  END
- 29 
- FI 
- 30 
-  WHILE
- 31 
-   t0 = _a
- 32 
-   t1 = _5
- 33 
-   t0 < t1
- 34 
-  DO
- 35 
-   assign_operation
- 36 
-   t1 = _a
- 37 
-   t3 = _6
- 38 
-   t1 = t3
- 39 
-   assign_operation_ends
- 40 
-  DONE
- 41 
-   assign_operation
- 42 
-   t0 = _b
- 43 
-   t3 = _y
- 44 
-   t1 = _7
- 45 
-   t3 += t1
- 46 
-   t0 = t3
- 47 
    assign_operation_ends

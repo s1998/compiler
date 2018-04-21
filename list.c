@@ -86,7 +86,10 @@ void read_table(st* st_)
   st_entry* node = st_->head;
   while(node)
   {
-    printf("%s %d \n", node->name, node->type);
+    if(node->type == NUM)
+      printf("_%s %d \n", node->name, node->type);
+    else
+      printf("%s %d \n", node->name, node->type);
     node = node->next;
   }
 }

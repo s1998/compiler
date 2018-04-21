@@ -7,6 +7,8 @@
 #define true 1
 #define false 0
 
+int spaces = 0;
+static int counter_l = 0;
 struct table *t;
 char    *filename_ic_name = "intermediate_code";
 FILE    *filename_ic;
@@ -25,12 +27,23 @@ int statement();
 int statements()
 {
     /*  statements -> expression SEMI  |  expression SEMI statements  */
-
+    
+    printf("statements\n");
+    spaces += 4;
     while( !match(EOI) )
     {
       if(!statement())
         break;
     }
+    spaces -= 4;
+    printf("parse tree ends\n\n\n\n\n");
+}
+
+void printspaces()
+{
+    int i = spaces;
+    while(i)
+        printf(" "), i -= 1;
 }
 
 int statement()
@@ -38,9 +51,14 @@ int statement()
     /*  statements -> expression SEMI  |  expression SEMI statements  */
 
     char *tempvar, *tempvar2;
+    printspaces();
+    printf("statement\n");
+    spaces += 4;
     if(match(ID))
     {   
-        
+        printspaces();
+        printf("ID := \n");
+        spaces += 4;
         code_line_no++;
         fprintf(filename_ic, " %d \n   %s\n",code_line_no, "assign_operation");
         code_line_no++;
@@ -50,6 +68,7 @@ int statement()
             advance();
         else
             fprintf(stderr, "%d: Assign operator missing\n", yylineno);
+
         tempvar2 = expression();
         code_line_no++;
         fprintf(filename_ic, " %d \n   %s = %s\n",code_line_no, tempvar, tempvar2);
@@ -61,9 +80,14 @@ int statement()
         fprintf(filename_ic, " %d \n   %s\n",code_line_no, "assign_operation_ends");
         freename( tempvar );
         freename( tempvar2 );
+        spaces -= 4;
     }
     else if(match(IF))
     {
+        printspaces();
+        printf("IF\n");
+        spaces += 4;
+        
         advance();
         code_line_no++;
         fprintf(filename_ic, " %d \n  IF \n", code_line_no);
@@ -73,6 +97,12 @@ int statement()
             advance();
         else
             fprintf(stderr, "%d: THEN operator missing\n", yylineno);
+        
+        spaces -= 4;
+        printspaces();
+        printf("THEN\n");
+        spaces += 4;
+        
         code_line_no++;
         fprintf(filename_ic, " %d \n  THEN \n", code_line_no);
         statement();
@@ -80,9 +110,15 @@ int statement()
         fprintf(filename_ic, " %d \n FI \n", code_line_no);
         insert_hash(t, line_no, code_line_no);
         freename( tempvar );
+        
+        spaces -= 4;
     }
     else if(match(WHILE))
     {
+        printspaces();
+        printf("WHILE\n");
+        spaces += 4;
+        
         advance();
         code_line_no++;
         fprintf(filename_ic, " %d \n  WHILE\n", code_line_no);
@@ -92,6 +128,12 @@ int statement()
             advance();
         else
             fprintf(stderr, "%d: DO operator missing\n", yylineno);
+        
+        spaces -= 4;
+        printspaces();
+        printf("DO\n");
+        spaces += 4;
+        
         code_line_no++;
         fprintf(filename_ic, " %d \n  DO\n", code_line_no);
         statement();
@@ -99,9 +141,15 @@ int statement()
         insert_hash(t, line_no, code_line_no);
         fprintf(filename_ic, " %d \n  DONE\n", code_line_no);
         freename( tempvar );
+        
+        spaces -= 4;
     }
     else if(match(BEGIN))
     {
+        printspaces();
+        printf("BEGIN\n");
+        spaces += 4;
+        
         advance();
         code_line_no++;
         fprintf(filename_ic, " %d \n  BEGIN\n", code_line_no);
@@ -111,10 +159,20 @@ int statement()
         else
             fprintf(stderr, "%d END operator missing\n", yylineno);
         code_line_no++;
+        
+        spaces -= 4;
+        printspaces();
+        printf("END\n");
+        
         fprintf(filename_ic, " %d \n  END\n", code_line_no);
     }
-    else return false;
-
+    else
+    {
+        spaces -= 4;
+        return false;
+    }
+    
+    spaces -= 4;
     return true;
 }
 
@@ -125,6 +183,9 @@ char    *expression()
      */
 
     char  *tempvar, *tempvar2;
+    printspaces();
+    printf("expression\n");
+    spaces += 4;
 
     tempvar = term_prime();
     while( match( LT ) || match( GT ) || match( EQ ))
@@ -137,12 +198,15 @@ char    *expression()
         else
             strcpy(c,"==");
         advance();
+        printspaces();
+        printf("relational_op %s\n", c);
         tempvar2 = term_prime();
         code_line_no++;
         fprintf(filename_ic, " %d \n   %s %s %s\n", code_line_no, tempvar, c, tempvar2 );
         freename( tempvar2 );
     }
 
+    spaces -= 4;
     return tempvar;
 }
 
@@ -152,6 +216,9 @@ char    *term_prime()
     /* expression -> term expression'
      * expression' -> PLUS term expression' |  epsilon
      */
+    printspaces();
+    printf("term_prime\n");
+    spaces += 4;
 
     char  *tempvar, *tempvar2;
 
@@ -160,17 +227,23 @@ char    *term_prime()
     {
         char c = match(PLUS) ? '+' : '-';
         advance();
+        printspaces();
+        printf("arithmetic_op %c\n", c);
         tempvar2 = term();
         code_line_no++;
         fprintf(filename_ic, " %d \n   %s %c= %s\n", code_line_no, tempvar, c, tempvar2 );
         freename( tempvar2 );
     }
 
+    spaces -= 4;
     return tempvar;
 }
 
 char    *term()
 {
+    printspaces();
+    printf("term\n");
+    spaces += 4;
     char  *tempvar, *tempvar2 ;
 
     tempvar = factor();
@@ -178,17 +251,24 @@ char    *term()
     {
         char c = match(MULT) ? '*' : '/';
         advance();
+        printspaces();
+        printf("arithmetic_op %c\n", c);
         tempvar2 = factor();
         code_line_no++;
         fprintf(filename_ic, " %d \n   %s %c= %s\n", code_line_no, tempvar, c, tempvar2 );
         freename( tempvar2 );
     }
 
+    spaces -= 4;
     return tempvar;
 }
 
 char    *factor()
 {
+    printspaces();
+    printf("factor\n");
+    spaces += 4;
+
     char *tempvar;
 
     if( match(NUM) || match(ID))
@@ -196,19 +276,28 @@ char    *factor()
         code_line_no++;
         fprintf(filename_ic, " %d \n   %s = _%0.*s\n", code_line_no, tempvar = newname(), yyleng, yytext );
         advance();
+        printspaces();
+        printf("Num or ID \n");
     }
     else if( match(LP) )
     {
+        printspaces();
+        printf("(\n");
+        spaces += 4;
         advance();
         tempvar = expression();
         if( match(RP) )
             advance();
         else
             fprintf(stderr, "%d: Mismatched parenthesis\n", yylineno );
+        spaces -= 4;
+        printspaces();
+        printf(")\n");
     }
     else
     fprintf( stderr, "%d: Number or identifier expected\n", yylineno );
-
+    
+    spaces -= 4;
     return tempvar;
 }
 
@@ -218,8 +307,10 @@ void gen_ic()
     t = createTable(100);
     filename_ic = fopen(filename_ic_name, "w");
     read_code();
-    statements();    
-    // read_table(table);
+    statements();
+    printf("Symbol table : \n");    
+    read_table(table);
+    printf("\n\n\n\n\n");    
     fclose(filename_ic);
 
 }
@@ -290,34 +381,18 @@ void parse(char* line)
             printf("PUSH A \nMOV A %s\nSUB %s\nMOV %s A\nPOP A\n", convert(reg1), convert(reg2), convert(reg1));
         else if (!strcmp(c, "*="))
             //printf("MUL %s %s\n", convert(reg1), convert(reg2));
-        	printf("PUSH A \nMVI C 00\nLDA %s\nMOV B A\nLDA %s\nMOV D A\nMVI A 00\nlabel_mul : ADD B\nDCR D\nJNZ label_mul\nJNC loop\nINR C\nloop : STA E\nMOV A,C\nSTA F\nHLT\nMOV %s E\nPOP A\n", convert(reg1), convert(reg2),convert(reg1));
+        	printf("PUSH A \nMVI C 00\nLDA %s\nMOV B A\nLDA %s\nMOV D A\nMVI A 00\nlabel_mul%d:\nADD B\nDCR D\nJNZ label_mul%d\nJNC loop%d\nINR C\nloop%d : \nSTA E\nMOV A,C\nSTA F\nMOV %s E\nPOP A\n", convert(reg1), convert(reg2), counter_l, counter_l, counter_l, counter_l, convert(reg1)), counter_l += 1;
         else if (!strcmp(c, "/="))
             //printf("DIV %s %s\n", convert(reg1), convert(reg2));
-            printf("PUSH A \nMVI C 00\nMOV B %s\nLDA %s\nNext : CMP B\nJC loop_div\nSUB B\nINR C\nJMP Next\nloop_div :STA E\nMOV A,C\nSTA %s\nHLT\nPOP A\n", convert(reg1), convert(reg2),convert(reg1));
+            printf("MOV H %s\nMOV L %s\nPUSH A \nMVI C 00\nMOV B H\nLDA L\nNext%d : \nCMP B\nJC loop_div%d\nSUB B\nINR C\nJMP Next%d\nloop_div%d :\nSTA E\nMOV A,C\nSTA H\nPOP A\nMOV %s H\nMOV %s L\n"
+                , convert(reg1), convert(reg2), counter_l, counter_l, counter_l, counter_l,
+                convert(reg1), 
+                convert(reg2)), counter_l += 1;
         else if (!strcmp(c, "=") )
             printf("MOV %s %s\n", convert(reg1), convert(reg2));
     }
 
 }
-
-
-
-// void parse_if()
-// {
-//     while(!(line = strtok(NULL, " \n ")));
-//     int start_line_no = atoi(line);
-//     int end_line_no = lookup(t, start_line_no);
-//     while(line = strtok(NULL, "\n"))
-//     {
-//         if(strstr(line, "THEN"))
-//             printf("BC here_%d", end_line_no);
-//         else parse(line);
-//         while(!(line = strtok(NULL, " \n ")));
-//         if(atoi(line) == end_line_no)
-
-//     }
-
-// }
 
 char* ic;
 void parse_main(char* line, char* paradigm)
@@ -388,6 +463,7 @@ void gen_ac()
     gen_ic();
     read_file(filename_ic_name, &ic);
     char* line = strtok(ic, "\n");
+    // printf("Pass 1 complete")
     parse_main(line, "Nada");
 
 }

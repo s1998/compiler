@@ -177,6 +177,7 @@ int match(int token){
 
    if(Lookahead == -1)
       Lookahead = lex();
+   // if (token == Lookahead)
    // printf("142: %d %d \n", token, Lookahead);
    return token == Lookahead;
 }
@@ -199,3 +200,5 @@ void advance(void){
 //   }
 //   read_table(table);
 // }
+// if a > 5 then if a > 10 then a := 5; 
+// 

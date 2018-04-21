@@ -1,2 +1,1 @@
-if a > 5 then begin  if a < 4 then a := 2; a := 6; a := 7; end
-while a < 5 do a:=6; b := y+7;
+a := 1;
