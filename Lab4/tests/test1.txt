@@ -1,4 +1,3 @@
-mem1 = Memory(mem_size=1)
-link_1 = Link(start_point = "proc_1", end_point= "ram1", 40, 50);
-link_1 = Link(start_point = "proc_1", end_point= "ram1", 40, 50)
-int a, b, c
+int ab[3][5]
+
+ab[1][2] = 4

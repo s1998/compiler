@@ -2,8 +2,47 @@ Terminals unused in grammar
 
    K_DO
    K_ELIF
+   K_ISA
+   K_CLOCK_SPEED
+   K_L1_MEMORY
+   K_L2_MEMORY
+   K_SUBMIT_JOBS
+   K_RUN
+   K_DISCARD_JOB
+   K_ARM
+   K_AMD
+   K_CDC
+   K_MIPS
+   K_START_POINT
+   K_END_POINT
+   K_BANDWIDTH
+   K_CHANNEL_CAPACITY
+   K_MEMORY_TYPE
+   K_MEM_SIZE
+   K_JOB_ID
+   K_FLOPS_REQUIRED
+   K_DEADLINE
+   K_MEM_REQUIRED
+   K_AFFINITY
+   K_PROCESSORS
+   K_TOPOLOGY
+   K_LINK_BANDWIDTH
+   K_LINK_CAPACITY
+   K_NAME
+   COLON
    EOFILE
+   K_PRIMARY
+   K_SECONDARY
+   K_CACHE
    SPACE
+   K_JOBS
+   K_ALGO
+   K_FCFS
+   K_SJN
+   K_SRT
+   K_RRS
+   K_WAIT
+   K_CLUSTERS
 
 
 Grammar
@@ -14,3653 +53,1577 @@ Grammar
     2           | epsilon
 
     3 statement: assign_statement
-    4          | K_IF LP bool_returning_statements RP LB statements RB K_ELSE LB statements RB
-    5          | K_WHILE LP bool_returning_statements RP LB statements RB
+    4          | K_IF_EXP BLOCK_BODY K_ELSE BLOCK_BODY
+    5          | K_WHILE_EXP BLOCK_BODY
     6          | K_BEGIN statements K_END
-    7          | K_FOR LP assign_statements SEMI bool_returning_statements SEMI assign_statements RP LB statements RB
+    7          | K_FOR_EXP BLOCK_BODY
     8          | ID DOT function_call_1
     9          | function_call_2
+   10          | DType DList
 
-   10 function_call_1: K_IS_RUNNING LP RP
-   11                | K_SUBMIT_JOBS LP ID RP
-   12                | K_SUBMIT_JOBS LP array_id RP
-   13                | K_GET_CLOCK_SPEED LP RP
-   14                | K_GET_AVAILABLE_MEMORY LP RP
-   15                | K_GET_MEMORY LP RP
-   16                | K_PRINT_STATS LP RP
+   11 K_WHILE_EXP: K_WHILE LP bool_returning_statements RP
 
-   17 function_call_2: K_RUN LP ID RP
-   18                | K_RUN LP array_id RP
-   19                | K_DISCARD_JOB LP expression RP
-   20                | K_WAIT LP expression RP
+   12 K_IF_EXP: K_IF LP bool_returning_statements RP
 
-   21 bool_returning_statements: bool_returning_statement L_AND bool_returning_statements
-   22                          | bool_returning_statement L_OR bool_returning_statements
-   23                          | L_NOT bool_returning_statements
-   24                          | bool_returning_statement
+   13 K_FOR_EXP: K_FOR LP assign_statements SEMI bool_returning_statements SEMI assign_statements RP
 
-   25 bool_returning_statement: expression
+   14 BLOCK_BODY: LB statements RB
 
-   26 assign_statements: assign_statement COMMA assign_statements
-   27                  | assign_statement
-   28                  | epsilon
+   15 DList: IDEXP COMMA DList
+   16      | IDEXP
 
-   29 assign_statement: ID ASSIGN expression
-   30                 | ID LS INT RS ASSIGN expression
-   31                 | ID LS ID RS ASSIGN expression
-   32                 | ID ASSIGN constructors
-   33                 | ID LS INT RS ASSIGN constructors
-   34                 | ID LS ID RS ASSIGN constructors
+   17 IDEXP: IDEXP0
+   18      | IDEXP0 BR_DIMLIST
 
-   35 expression: term_prime RELOP expression
-   36           | term_prime
+   19 IDEXP0: ID
 
-   37 term_prime: term PLUS term_prime
-   38           | term MINUS term_prime
-   39           | term
+   20 BR_DIMLIST: DIM1
+   21           | DIM1 BR_DIMLIST
 
-   40 term: factor MULT term
-   41     | factor DIV term
-   42     | factor
+   22 DIM1: LS INT RS
+   23     | LS ID RS
 
-   43 factor: factor_prime
+   24 DType: K_INT
+   25      | K_FLOAT
+   26      | K_BOOL
+   27      | K_PROCESSOR
+   28      | K_LINK
+   29      | K_SCHEDULER
+   30      | K_MEMORY
+   31      | K_CLUSTER
+   32      | K_JOB
 
-   44 factor_prime: ID DOT function_call_1
-   45             | LP expression RP
-   46             | INT
-   47             | FLOAT
-   48             | STRING
-   49             | function_call_2
-   50             | ID
+   33 function_call_1: K_IS_RUNNING LP RP
+   34                | K_GET_CLOCK_SPEED LP RP
+   35                | K_GET_AVAILABLE_MEMORY LP RP
+   36                | K_GET_MEMORY LP RP
+   37                | K_PRINT_STATS LP RP
 
-   51 constructors: K_PROCESSOR LP processor_params RP
-   52             | K_LINK LP link_params RP
-   53             | K_MEMORY LP memory_params RP
-   54             | K_JOB LP job_params RP
-   55             | K_CLUSTER LP cluster_params RP
-   56             | K_SCHEDULER LP scheduler_params RP
+   38 function_call_2: K_PRINT LP expression RP
+   39                | K_INPUT LP ID RP
 
-   57 processor_params: processor_param_isa processor_param_clock_speed processor_param_l1_memory
-   58                 | processor_param_isa processor_param_clock_speed processor_param_l1_memory COMMA processor_param_l2_memory COMMA processor_param_name
-   59                 | processor_param_isa processor_param_clock_speed processor_param_l1_memory COMMA processor_param_l2_memory
-   60                 | processor_param_isa processor_param_clock_speed processor_param_l1_memory COMMA processor_param_name
+   40 bool_returning_statements: bool_returning_statement L_AND bool_returning_statements
+   41                          | bool_returning_statement L_OR bool_returning_statements
+   42                          | L_NOT bool_returning_statements
+   43                          | bool_returning_statement
 
-   61 link_params: link_param_start_point link_param_end_point link_param_bandwidth link_param_channel_capacity link_param_name
+   44 bool_returning_statement: expression
 
-   62 memory_params: memory_param_memory_type memory_param_mem_size memory_param_name
+   45 assign_statements: assign_statement COMMA assign_statements
+   46                  | assign_statement
+   47                  | epsilon
 
-   63 job_params: job_param_job_id job_param_flops_required job_param_deadline job_param_mem_required job_param_affinity
+   48 assign_statement: IDEXP ASSIGN expression
 
-   64 cluster_params: cluster_param_processors cluster_param_topology cluster_param_link_bandwidth cluster_param_link_capacity cluster_param_name
+   49 expression: term_prime RELOPEXP expression
+   50           | term_prime
 
-   65 scheduler_params: scheduler_param_jobs scheduler_param_processors scheduler_param_algo
+   51 RELOPEXP: RELOP
 
-   66 processor_param_isa: K_ISA ASSIGN ISA_values
+   52 term_prime: term PLUS term_prime
+   53           | term MINUS term_prime
+   54           | term
 
-   67 ISA_values: K_ARM
-   68           | K_AMD
-   69           | K_CDC
-   70           | K_MIPS
+   55 term: factor MULT term
+   56     | factor DIV term
+   57     | factor
 
-   71 processor_param_clock_speed: COMMA K_CLOCK_SPEED COLON expression
+   58 factor: factor_prime
 
-   72 processor_param_l1_memory: COMMA K_L1_MEMORY ASSIGN ID
-   73                          | COMMA K_L1_MEMORY ASSIGN K_MEMORY LP memory_params RP
+   59 factor_prime: ID DOT function_call_1
+   60             | LP expression RP
+   61             | INT
+   62             | FLOAT
+   63             | STRING
+   64             | function_call_2
+   65             | IDEXP
 
-   74 processor_param_l2_memory: K_L2_MEMORY ASSIGN ID
-   75                          | K_L2_MEMORY ASSIGN K_MEMORY LP memory_params RP
-
-   76 processor_param_name: K_NAME ASSIGN STRING
-
-   77 link_param_start_point: K_START_POINT ASSIGN STRING
-   78                       | K_START_POINT ASSIGN ID
-
-   79 link_param_end_point: COMMA K_END_POINT ASSIGN STRING
-   80                     | COMMA K_END_POINT ASSIGN ID
-
-   81 link_param_bandwidth: COMMA K_BANDWIDTH ASSIGN expression
-   82                     | COMMA expression
-
-   83 link_param_channel_capacity: COMMA K_CHANNEL_CAPACITY ASSIGN expression
-   84                            | COMMA expression
-
-   85 link_param_name: COMMA K_NAME ASSIGN STRING
-   86                | COMMA K_NAME ASSIGN ID
-   87                | epsilon
-
-   88 memory_param_memory_type: K_MEMORY_TYPE ASSIGN memory_type_values
-
-   89 memory_param_mem_size: COMMA K_MEM_SIZE ASSIGN expression
-
-   90 memory_param_name: COMMA K_NAME ASSIGN STRING
-   91                  | COMMA K_NAME ASSIGN ID
-   92                  | epsilon
-
-   93 memory_type_values: K_PRIMARY
-   94                   | K_SECONDARY
-   95                   | K_CACHE
-
-   96 job_param_job_id: K_JOB_ID ASSIGN expression
-   97                 | COMMA expression
-
-   98 job_param_flops_required: COMMA K_FLOPS_REQUIRED ASSIGN expression
-   99                         | COMMA expression
-
-  100 job_param_deadline: COMMA K_DEADLINE ASSIGN expression
-  101                   | COMMA expression
-
-  102 job_param_mem_required: COMMA K_MEM_REQUIRED ASSIGN expression
-  103                       | COMMA expression
-
-  104 job_param_affinity: COMMA K_AFFINITY ASSIGN array_num
-  105                   | COMMA K_AFFINITY ASSIGN ID
-
-  106 cluster_param_processors: K_PROCESSORS ASSIGN array_id
-  107                         | K_PROCESSORS ASSIGN ID
-
-  108 cluster_param_topology: COMMA K_TOPOLOGY ASSIGN STRING
-
-  109 cluster_param_link_bandwidth: COMMA K_LINK_BANDWIDTH ASSIGN expression
-  110                             | COMMA expression
-
-  111 cluster_param_link_capacity: COMMA K_LINK_CAPACITY ASSIGN expression
-  112                            | COMMA expression
-
-  113 cluster_param_name: COMMA K_NAME ASSIGN STRING
-  114                   | epsilon
-
-  115 scheduler_param_jobs: K_JOBS ASSIGN array_id
-  116                     | K_JOBS ASSIGN ID
-
-  117 scheduler_param_processors: COMMA K_PROCESSORS ASSIGN array_id
-  118                           | COMMA K_PROCESSORS ASSIGN ID
-
-  119 scheduler_param_algo: COMMA K_ALGO ASSIGN algo_type_values
-
-  120 algo_type_values: K_FCFS
-  121                 | K_SJN
-  122                 | K_SRT
-  123                 | K_RRS
-
-  124 array_num: LS expression array_num_items RS
-
-  125 array_num_items: COMMA expression array_num_items
-  126                | epsilon
-
-  127 array_id: LS ID array_id_items RS
-
-  128 array_id_items: COMMA ID array_id_items
-  129               | epsilon
-
-  130 epsilon: %empty
+   66 epsilon: %empty
 
 
 Terminals, with rules where they appear
 
 $end (0) 0
-K_IF (1) 4
+K_IF (1) 12
 K_ELSE (2) 4
-K_WHILE (3) 5
+K_WHILE (3) 11
 K_DO (4)
 K_ELIF (5)
-K_FOR (6) 7
+K_FOR (6) 13
 K_BEGIN (7) 6
 K_END (8) 6
-K_PROCESSOR (9) 51
-K_ISA (10) 66
-K_CLOCK_SPEED (11) 71
-K_L1_MEMORY (12) 72 73
-K_L2_MEMORY (13) 74 75
-K_IS_RUNNING (14) 10
-K_SUBMIT_JOBS (15) 11 12
-K_GET_CLOCK_SPEED (16) 13
-K_RUN (17) 17 18
-K_DISCARD_JOB (18) 19
-K_ARM (19) 67
-K_AMD (20) 68
-K_CDC (21) 69
-K_MIPS (22) 70
-K_LINK (23) 52
-K_START_POINT (24) 77 78
-K_END_POINT (25) 79 80
-K_BANDWIDTH (26) 81
-K_CHANNEL_CAPACITY (27) 83
-K_MEMORY (28) 53 73 75
-K_MEMORY_TYPE (29) 88
-K_MEM_SIZE (30) 89
-K_GET_AVAILABLE_MEMORY (31) 14
-K_JOB (32) 54
-K_JOB_ID (33) 96
-K_FLOPS_REQUIRED (34) 98
-K_DEADLINE (35) 100
-K_MEM_REQUIRED (36) 102
-K_AFFINITY (37) 104 105
-K_GET_MEMORY (38) 15
-K_CLUSTER (39) 55
-K_PROCESSORS (40) 106 107 117 118
-K_TOPOLOGY (41) 108
-K_LINK_BANDWIDTH (42) 109
-K_LINK_CAPACITY (43) 111
-K_NAME (44) 76 85 86 90 91 113
-ID (45) 8 11 17 29 30 31 32 33 34 44 50 72 74 78 80 86 91 105 107 116
-    118 127 128
-INT (46) 30 33 46
-FLOAT (47) 47
-LP (48) 4 5 7 10 11 12 13 14 15 16 17 18 19 20 45 51 52 53 54 55 56
-    73 75
-RP (49) 4 5 7 10 11 12 13 14 15 16 17 18 19 20 45 51 52 53 54 55 56
-    73 75
-LB (50) 4 5 7
-RB (51) 4 5 7
-STRING (52) 48 76 77 79 85 90 108 113
-LS (53) 30 31 33 34 124 127
-RS (54) 30 31 33 34 124 127
-PLUS (55) 37
-MINUS (56) 38
-MULT (57) 40
-DIV (58) 41
-RELOP (59) 35
-COMMA (60) 26 58 59 60 71 72 73 79 80 81 82 83 84 85 86 89 90 91 97
-    98 99 100 101 102 103 104 105 108 109 110 111 112 113 117 118 119
-    125 128
-SEMI (61) 7
-COLON (62) 71
-ASSIGN (63) 29 30 31 32 33 34 66 72 73 74 75 76 77 78 79 80 81 83 85
-    86 88 89 90 91 96 98 100 102 104 105 106 107 108 109 111 113 115
-    116 117 118 119
-L_AND (64) 21
-L_OR (65) 22
-L_NOT (66) 23
-DOT (67) 8 44
+K_PROCESSOR (9) 27
+K_ISA (10)
+K_CLOCK_SPEED (11)
+K_L1_MEMORY (12)
+K_L2_MEMORY (13)
+K_IS_RUNNING (14) 33
+K_SUBMIT_JOBS (15)
+K_GET_CLOCK_SPEED (16) 34
+K_RUN (17)
+K_DISCARD_JOB (18)
+K_ARM (19)
+K_AMD (20)
+K_CDC (21)
+K_MIPS (22)
+K_LINK (23) 28
+K_START_POINT (24)
+K_END_POINT (25)
+K_BANDWIDTH (26)
+K_CHANNEL_CAPACITY (27)
+K_MEMORY (28) 30
+K_MEMORY_TYPE (29)
+K_MEM_SIZE (30)
+K_GET_AVAILABLE_MEMORY (31) 35
+K_JOB (32) 32
+K_JOB_ID (33)
+K_FLOPS_REQUIRED (34)
+K_DEADLINE (35)
+K_MEM_REQUIRED (36)
+K_AFFINITY (37)
+K_GET_MEMORY (38) 36
+K_CLUSTER (39) 31
+K_PROCESSORS (40)
+K_TOPOLOGY (41)
+K_LINK_BANDWIDTH (42)
+K_LINK_CAPACITY (43)
+K_NAME (44)
+ID (45) 8 19 23 39 59
+INT (46) 22 61
+FLOAT (47) 62
+LP (48) 11 12 13 33 34 35 36 37 38 39 60
+RP (49) 11 12 13 33 34 35 36 37 38 39 60
+LB (50) 14
+RB (51) 14
+STRING (52) 63
+LS (53) 22 23
+RS (54) 22 23
+PLUS (55) 52
+MINUS (56) 53
+MULT (57) 55
+DIV (58) 56
+RELOP (59) 51
+COMMA (60) 15 45
+SEMI (61) 13
+COLON (62)
+ASSIGN (63) 48
+L_AND (64) 40
+L_OR (65) 41
+L_NOT (66) 42
+DOT (67) 8 59
 EOFILE (68)
-K_PRIMARY (69) 93
-K_SECONDARY (70) 94
-K_CACHE (71) 95
+K_PRIMARY (69)
+K_SECONDARY (70)
+K_CACHE (71)
 SPACE (72)
-K_PRINT_STATS (73) 16
-K_SCHEDULER (74) 56
-K_JOBS (75) 115 116
-K_ALGO (76) 119
-K_FCFS (77) 120
-K_SJN (78) 121
-K_SRT (79) 122
-K_RRS (80) 123
-K_WAIT (81) 20
+K_PRINT_STATS (73) 37
+K_SCHEDULER (74) 29
+K_JOBS (75)
+K_ALGO (76)
+K_FCFS (77)
+K_SJN (78)
+K_SRT (79)
+K_RRS (80)
+K_WAIT (81)
+K_CLUSTERS (82)
+K_INT (83) 24
+K_BOOL (84) 26
+K_FLOAT (85) 25
+K_PRINT (86) 38
+K_INPUT (87) 39
 error (256)
 
 
 Nonterminals, with rules where they appear
 
-$accept (84)
+$accept (90)
     on left: 0
-statements (85)
-    on left: 1 2, on right: 0 1 4 5 6 7
-statement (86)
-    on left: 3 4 5 6 7 8 9, on right: 1
-function_call_1 (87)
-    on left: 10 11 12 13 14 15 16, on right: 8 44
-function_call_2 (88)
-    on left: 17 18 19 20, on right: 9 49
-bool_returning_statements (89)
-    on left: 21 22 23 24, on right: 4 5 7 21 22 23
-bool_returning_statement (90)
-    on left: 25, on right: 21 22 24
-assign_statements (91)
-    on left: 26 27 28, on right: 7 26
-assign_statement (92)
-    on left: 29 30 31 32 33 34, on right: 3 26 27
-expression (93)
-    on left: 35 36, on right: 19 20 25 29 30 31 35 45 71 81 82 83 84
-    89 96 97 98 99 100 101 102 103 109 110 111 112 124 125
-term_prime (94)
-    on left: 37 38 39, on right: 35 36 37 38
-term (95)
-    on left: 40 41 42, on right: 37 38 39 40 41
-factor (96)
-    on left: 43, on right: 40 41 42
-factor_prime (97)
-    on left: 44 45 46 47 48 49 50, on right: 43
-constructors (98)
-    on left: 51 52 53 54 55 56, on right: 32 33 34
-processor_params (99)
-    on left: 57 58 59 60, on right: 51
-link_params (100)
-    on left: 61, on right: 52
-memory_params (101)
-    on left: 62, on right: 53 73 75
-job_params (102)
-    on left: 63, on right: 54
-cluster_params (103)
-    on left: 64, on right: 55
-scheduler_params (104)
-    on left: 65, on right: 56
-processor_param_isa (105)
-    on left: 66, on right: 57 58 59 60
-ISA_values (106)
-    on left: 67 68 69 70, on right: 66
-processor_param_clock_speed (107)
-    on left: 71, on right: 57 58 59 60
-processor_param_l1_memory (108)
-    on left: 72 73, on right: 57 58 59 60
-processor_param_l2_memory (109)
-    on left: 74 75, on right: 58 59
-processor_param_name (110)
-    on left: 76, on right: 58 60
-link_param_start_point (111)
-    on left: 77 78, on right: 61
-link_param_end_point (112)
-    on left: 79 80, on right: 61
-link_param_bandwidth (113)
-    on left: 81 82, on right: 61
-link_param_channel_capacity (114)
-    on left: 83 84, on right: 61
-link_param_name (115)
-    on left: 85 86 87, on right: 61
-memory_param_memory_type (116)
-    on left: 88, on right: 62
-memory_param_mem_size (117)
-    on left: 89, on right: 62
-memory_param_name (118)
-    on left: 90 91 92, on right: 62
-memory_type_values (119)
-    on left: 93 94 95, on right: 88
-job_param_job_id (120)
-    on left: 96 97, on right: 63
-job_param_flops_required (121)
-    on left: 98 99, on right: 63
-job_param_deadline (122)
-    on left: 100 101, on right: 63
-job_param_mem_required (123)
-    on left: 102 103, on right: 63
-job_param_affinity (124)
-    on left: 104 105, on right: 63
-cluster_param_processors (125)
-    on left: 106 107, on right: 64
-cluster_param_topology (126)
-    on left: 108, on right: 64
-cluster_param_link_bandwidth (127)
-    on left: 109 110, on right: 64
-cluster_param_link_capacity (128)
-    on left: 111 112, on right: 64
-cluster_param_name (129)
-    on left: 113 114, on right: 64
-scheduler_param_jobs (130)
-    on left: 115 116, on right: 65
-scheduler_param_processors (131)
-    on left: 117 118, on right: 65
-scheduler_param_algo (132)
-    on left: 119, on right: 65
-algo_type_values (133)
-    on left: 120 121 122 123, on right: 119
-array_num (134)
-    on left: 124, on right: 104
-array_num_items (135)
-    on left: 125 126, on right: 124 125
-array_id (136)
-    on left: 127, on right: 12 18 106 115 117
-array_id_items (137)
-    on left: 128 129, on right: 127 128
-epsilon (138)
-    on left: 130, on right: 2 28 87 92 114 126 129
+statements (91)
+    on left: 1 2, on right: 0 1 6 14
+statement (92)
+    on left: 3 4 5 6 7 8 9 10, on right: 1
+K_WHILE_EXP (93)
+    on left: 11, on right: 5
+K_IF_EXP (94)
+    on left: 12, on right: 4
+K_FOR_EXP (95)
+    on left: 13, on right: 7
+BLOCK_BODY (96)
+    on left: 14, on right: 4 5 7
+DList (97)
+    on left: 15 16, on right: 10 15
+IDEXP (98)
+    on left: 17 18, on right: 15 16 48 65
+IDEXP0 (99)
+    on left: 19, on right: 17 18
+BR_DIMLIST (100)
+    on left: 20 21, on right: 18 21
+DIM1 (101)
+    on left: 22 23, on right: 20 21
+DType (102)
+    on left: 24 25 26 27 28 29 30 31 32, on right: 10
+function_call_1 (103)
+    on left: 33 34 35 36 37, on right: 8 59
+function_call_2 (104)
+    on left: 38 39, on right: 9 64
+bool_returning_statements (105)
+    on left: 40 41 42 43, on right: 11 12 13 40 41 42
+bool_returning_statement (106)
+    on left: 44, on right: 40 41 43
+assign_statements (107)
+    on left: 45 46 47, on right: 13 45
+assign_statement (108)
+    on left: 48, on right: 3 45 46
+expression (109)
+    on left: 49 50, on right: 38 44 48 49 60
+RELOPEXP (110)
+    on left: 51, on right: 49
+term_prime (111)
+    on left: 52 53 54, on right: 49 50 52 53
+term (112)
+    on left: 55 56 57, on right: 52 53 54 55 56
+factor (113)
+    on left: 58, on right: 55 56 57
+factor_prime (114)
+    on left: 59 60 61 62 63 64 65, on right: 58
+epsilon (115)
+    on left: 66, on right: 2 47
 
 
 State 0
 
     0 $accept: . statements $end
 
-    K_IF           shift, and go to state 1
-    K_WHILE        shift, and go to state 2
-    K_FOR          shift, and go to state 3
-    K_BEGIN        shift, and go to state 4
-    K_RUN          shift, and go to state 5
-    K_DISCARD_JOB  shift, and go to state 6
-    ID             shift, and go to state 7
-    K_WAIT         shift, and go to state 8
+    K_IF         shift, and go to state 1
+    K_WHILE      shift, and go to state 2
+    K_FOR        shift, and go to state 3
+    K_BEGIN      shift, and go to state 4
+    K_PROCESSOR  shift, and go to state 5
+    K_LINK       shift, and go to state 6
+    K_MEMORY     shift, and go to state 7
+    K_JOB        shift, and go to state 8
+    K_CLUSTER    shift, and go to state 9
+    ID           shift, and go to state 10
+    K_SCHEDULER  shift, and go to state 11
+    K_INT        shift, and go to state 12
+    K_BOOL       shift, and go to state 13
+    K_FLOAT      shift, and go to state 14
+    K_PRINT      shift, and go to state 15
+    K_INPUT      shift, and go to state 16
 
-    $default  reduce using rule 130 (epsilon)
+    $default  reduce using rule 66 (epsilon)
 
-    statements        go to state 9
-    statement         go to state 10
-    function_call_2   go to state 11
-    assign_statement  go to state 12
-    epsilon           go to state 13
+    statements        go to state 17
+    statement         go to state 18
+    K_WHILE_EXP       go to state 19
+    K_IF_EXP          go to state 20
+    K_FOR_EXP         go to state 21
+    IDEXP             go to state 22
+    IDEXP0            go to state 23
+    DType             go to state 24
+    function_call_2   go to state 25
+    assign_statement  go to state 26
+    epsilon           go to state 27
 
 
 State 1
 
-    4 statement: K_IF . LP bool_returning_statements RP LB statements RB K_ELSE LB statements RB
+   12 K_IF_EXP: K_IF . LP bool_returning_statements RP
 
-    LP  shift, and go to state 14
+    LP  shift, and go to state 28
 
 
 State 2
 
-    5 statement: K_WHILE . LP bool_returning_statements RP LB statements RB
+   11 K_WHILE_EXP: K_WHILE . LP bool_returning_statements RP
 
-    LP  shift, and go to state 15
+    LP  shift, and go to state 29
 
 
 State 3
 
-    7 statement: K_FOR . LP assign_statements SEMI bool_returning_statements SEMI assign_statements RP LB statements RB
+   13 K_FOR_EXP: K_FOR . LP assign_statements SEMI bool_returning_statements SEMI assign_statements RP
 
-    LP  shift, and go to state 16
+    LP  shift, and go to state 30
 
 
 State 4
 
     6 statement: K_BEGIN . statements K_END
 
-    K_IF           shift, and go to state 1
-    K_WHILE        shift, and go to state 2
-    K_FOR          shift, and go to state 3
-    K_BEGIN        shift, and go to state 4
-    K_RUN          shift, and go to state 5
-    K_DISCARD_JOB  shift, and go to state 6
-    ID             shift, and go to state 7
-    K_WAIT         shift, and go to state 8
+    K_IF         shift, and go to state 1
+    K_WHILE      shift, and go to state 2
+    K_FOR        shift, and go to state 3
+    K_BEGIN      shift, and go to state 4
+    K_PROCESSOR  shift, and go to state 5
+    K_LINK       shift, and go to state 6
+    K_MEMORY     shift, and go to state 7
+    K_JOB        shift, and go to state 8
+    K_CLUSTER    shift, and go to state 9
+    ID           shift, and go to state 10
+    K_SCHEDULER  shift, and go to state 11
+    K_INT        shift, and go to state 12
+    K_BOOL       shift, and go to state 13
+    K_FLOAT      shift, and go to state 14
+    K_PRINT      shift, and go to state 15
+    K_INPUT      shift, and go to state 16
 
-    $default  reduce using rule 130 (epsilon)
+    $default  reduce using rule 66 (epsilon)
 
-    statements        go to state 17
-    statement         go to state 10
-    function_call_2   go to state 11
-    assign_statement  go to state 12
-    epsilon           go to state 13
+    statements        go to state 31
+    statement         go to state 18
+    K_WHILE_EXP       go to state 19
+    K_IF_EXP          go to state 20
+    K_FOR_EXP         go to state 21
+    IDEXP             go to state 22
+    IDEXP0            go to state 23
+    DType             go to state 24
+    function_call_2   go to state 25
+    assign_statement  go to state 26
+    epsilon           go to state 27
 
 
 State 5
 
-   17 function_call_2: K_RUN . LP ID RP
-   18                | K_RUN . LP array_id RP
+   27 DType: K_PROCESSOR .
 
-    LP  shift, and go to state 18
+    $default  reduce using rule 27 (DType)
 
 
 State 6
 
-   19 function_call_2: K_DISCARD_JOB . LP expression RP
+   28 DType: K_LINK .
 
-    LP  shift, and go to state 19
+    $default  reduce using rule 28 (DType)
 
 
 State 7
 
-    8 statement: ID . DOT function_call_1
-   29 assign_statement: ID . ASSIGN expression
-   30                 | ID . LS INT RS ASSIGN expression
-   31                 | ID . LS ID RS ASSIGN expression
-   32                 | ID . ASSIGN constructors
-   33                 | ID . LS INT RS ASSIGN constructors
-   34                 | ID . LS ID RS ASSIGN constructors
+   30 DType: K_MEMORY .
 
-    LS      shift, and go to state 20
-    ASSIGN  shift, and go to state 21
-    DOT     shift, and go to state 22
+    $default  reduce using rule 30 (DType)
 
 
 State 8
 
-   20 function_call_2: K_WAIT . LP expression RP
+   32 DType: K_JOB .
 
-    LP  shift, and go to state 23
+    $default  reduce using rule 32 (DType)
 
 
 State 9
 
-    0 $accept: statements . $end
+   31 DType: K_CLUSTER .
 
-    $end  shift, and go to state 24
+    $default  reduce using rule 31 (DType)
 
 
 State 10
 
-    1 statements: statement . statements
+    8 statement: ID . DOT function_call_1
+   19 IDEXP0: ID .
 
-    K_IF           shift, and go to state 1
-    K_WHILE        shift, and go to state 2
-    K_FOR          shift, and go to state 3
-    K_BEGIN        shift, and go to state 4
-    K_RUN          shift, and go to state 5
-    K_DISCARD_JOB  shift, and go to state 6
-    ID             shift, and go to state 7
-    K_WAIT         shift, and go to state 8
+    DOT  shift, and go to state 32
 
-    $default  reduce using rule 130 (epsilon)
-
-    statements        go to state 25
-    statement         go to state 10
-    function_call_2   go to state 11
-    assign_statement  go to state 12
-    epsilon           go to state 13
+    $default  reduce using rule 19 (IDEXP0)
 
 
 State 11
+
+   29 DType: K_SCHEDULER .
+
+    $default  reduce using rule 29 (DType)
+
+
+State 12
+
+   24 DType: K_INT .
+
+    $default  reduce using rule 24 (DType)
+
+
+State 13
+
+   26 DType: K_BOOL .
+
+    $default  reduce using rule 26 (DType)
+
+
+State 14
+
+   25 DType: K_FLOAT .
+
+    $default  reduce using rule 25 (DType)
+
+
+State 15
+
+   38 function_call_2: K_PRINT . LP expression RP
+
+    LP  shift, and go to state 33
+
+
+State 16
+
+   39 function_call_2: K_INPUT . LP ID RP
+
+    LP  shift, and go to state 34
+
+
+State 17
+
+    0 $accept: statements . $end
+
+    $end  shift, and go to state 35
+
+
+State 18
+
+    1 statements: statement . statements
+
+    K_IF         shift, and go to state 1
+    K_WHILE      shift, and go to state 2
+    K_FOR        shift, and go to state 3
+    K_BEGIN      shift, and go to state 4
+    K_PROCESSOR  shift, and go to state 5
+    K_LINK       shift, and go to state 6
+    K_MEMORY     shift, and go to state 7
+    K_JOB        shift, and go to state 8
+    K_CLUSTER    shift, and go to state 9
+    ID           shift, and go to state 10
+    K_SCHEDULER  shift, and go to state 11
+    K_INT        shift, and go to state 12
+    K_BOOL       shift, and go to state 13
+    K_FLOAT      shift, and go to state 14
+    K_PRINT      shift, and go to state 15
+    K_INPUT      shift, and go to state 16
+
+    $default  reduce using rule 66 (epsilon)
+
+    statements        go to state 36
+    statement         go to state 18
+    K_WHILE_EXP       go to state 19
+    K_IF_EXP          go to state 20
+    K_FOR_EXP         go to state 21
+    IDEXP             go to state 22
+    IDEXP0            go to state 23
+    DType             go to state 24
+    function_call_2   go to state 25
+    assign_statement  go to state 26
+    epsilon           go to state 27
+
+
+State 19
+
+    5 statement: K_WHILE_EXP . BLOCK_BODY
+
+    LB  shift, and go to state 37
+
+    BLOCK_BODY  go to state 38
+
+
+State 20
+
+    4 statement: K_IF_EXP . BLOCK_BODY K_ELSE BLOCK_BODY
+
+    LB  shift, and go to state 37
+
+    BLOCK_BODY  go to state 39
+
+
+State 21
+
+    7 statement: K_FOR_EXP . BLOCK_BODY
+
+    LB  shift, and go to state 37
+
+    BLOCK_BODY  go to state 40
+
+
+State 22
+
+   48 assign_statement: IDEXP . ASSIGN expression
+
+    ASSIGN  shift, and go to state 41
+
+
+State 23
+
+   17 IDEXP: IDEXP0 .
+   18      | IDEXP0 . BR_DIMLIST
+
+    LS  shift, and go to state 42
+
+    $default  reduce using rule 17 (IDEXP)
+
+    BR_DIMLIST  go to state 43
+    DIM1        go to state 44
+
+
+State 24
+
+   10 statement: DType . DList
+
+    ID  shift, and go to state 45
+
+    DList   go to state 46
+    IDEXP   go to state 47
+    IDEXP0  go to state 23
+
+
+State 25
 
     9 statement: function_call_2 .
 
     $default  reduce using rule 9 (statement)
 
 
-State 12
+State 26
 
     3 statement: assign_statement .
 
     $default  reduce using rule 3 (statement)
 
 
-State 13
+State 27
 
     2 statements: epsilon .
 
     $default  reduce using rule 2 (statements)
 
 
-State 14
+State 28
 
-    4 statement: K_IF LP . bool_returning_statements RP LB statements RB K_ELSE LB statements RB
+   12 K_IF_EXP: K_IF LP . bool_returning_statements RP
 
-    K_RUN          shift, and go to state 5
-    K_DISCARD_JOB  shift, and go to state 6
-    ID             shift, and go to state 26
-    INT            shift, and go to state 27
-    FLOAT          shift, and go to state 28
-    LP             shift, and go to state 29
-    STRING         shift, and go to state 30
-    L_NOT          shift, and go to state 31
-    K_WAIT         shift, and go to state 8
+    ID       shift, and go to state 48
+    INT      shift, and go to state 49
+    FLOAT    shift, and go to state 50
+    LP       shift, and go to state 51
+    STRING   shift, and go to state 52
+    L_NOT    shift, and go to state 53
+    K_PRINT  shift, and go to state 15
+    K_INPUT  shift, and go to state 16
 
-    function_call_2            go to state 32
-    bool_returning_statements  go to state 33
-    bool_returning_statement   go to state 34
-    expression                 go to state 35
-    term_prime                 go to state 36
-    term                       go to state 37
-    factor                     go to state 38
-    factor_prime               go to state 39
-
-
-State 15
-
-    5 statement: K_WHILE LP . bool_returning_statements RP LB statements RB
-
-    K_RUN          shift, and go to state 5
-    K_DISCARD_JOB  shift, and go to state 6
-    ID             shift, and go to state 26
-    INT            shift, and go to state 27
-    FLOAT          shift, and go to state 28
-    LP             shift, and go to state 29
-    STRING         shift, and go to state 30
-    L_NOT          shift, and go to state 31
-    K_WAIT         shift, and go to state 8
-
-    function_call_2            go to state 32
-    bool_returning_statements  go to state 40
-    bool_returning_statement   go to state 34
-    expression                 go to state 35
-    term_prime                 go to state 36
-    term                       go to state 37
-    factor                     go to state 38
-    factor_prime               go to state 39
+    IDEXP                      go to state 54
+    IDEXP0                     go to state 23
+    function_call_2            go to state 55
+    bool_returning_statements  go to state 56
+    bool_returning_statement   go to state 57
+    expression                 go to state 58
+    term_prime                 go to state 59
+    term                       go to state 60
+    factor                     go to state 61
+    factor_prime               go to state 62
 
 
-State 16
+State 29
 
-    7 statement: K_FOR LP . assign_statements SEMI bool_returning_statements SEMI assign_statements RP LB statements RB
+   11 K_WHILE_EXP: K_WHILE LP . bool_returning_statements RP
 
-    ID  shift, and go to state 41
+    ID       shift, and go to state 48
+    INT      shift, and go to state 49
+    FLOAT    shift, and go to state 50
+    LP       shift, and go to state 51
+    STRING   shift, and go to state 52
+    L_NOT    shift, and go to state 53
+    K_PRINT  shift, and go to state 15
+    K_INPUT  shift, and go to state 16
 
-    $default  reduce using rule 130 (epsilon)
+    IDEXP                      go to state 54
+    IDEXP0                     go to state 23
+    function_call_2            go to state 55
+    bool_returning_statements  go to state 63
+    bool_returning_statement   go to state 57
+    expression                 go to state 58
+    term_prime                 go to state 59
+    term                       go to state 60
+    factor                     go to state 61
+    factor_prime               go to state 62
 
-    assign_statements  go to state 42
-    assign_statement   go to state 43
-    epsilon            go to state 44
+
+State 30
+
+   13 K_FOR_EXP: K_FOR LP . assign_statements SEMI bool_returning_statements SEMI assign_statements RP
+
+    ID  shift, and go to state 45
+
+    $default  reduce using rule 66 (epsilon)
+
+    IDEXP              go to state 22
+    IDEXP0             go to state 23
+    assign_statements  go to state 64
+    assign_statement   go to state 65
+    epsilon            go to state 66
 
 
-State 17
+State 31
 
     6 statement: K_BEGIN statements . K_END
 
-    K_END  shift, and go to state 45
+    K_END  shift, and go to state 67
 
 
-State 18
-
-   17 function_call_2: K_RUN LP . ID RP
-   18                | K_RUN LP . array_id RP
-
-    ID  shift, and go to state 46
-    LS  shift, and go to state 47
-
-    array_id  go to state 48
-
-
-State 19
-
-   19 function_call_2: K_DISCARD_JOB LP . expression RP
-
-    K_RUN          shift, and go to state 5
-    K_DISCARD_JOB  shift, and go to state 6
-    ID             shift, and go to state 26
-    INT            shift, and go to state 27
-    FLOAT          shift, and go to state 28
-    LP             shift, and go to state 29
-    STRING         shift, and go to state 30
-    K_WAIT         shift, and go to state 8
-
-    function_call_2  go to state 32
-    expression       go to state 49
-    term_prime       go to state 36
-    term             go to state 37
-    factor           go to state 38
-    factor_prime     go to state 39
-
-
-State 20
-
-   30 assign_statement: ID LS . INT RS ASSIGN expression
-   31                 | ID LS . ID RS ASSIGN expression
-   33                 | ID LS . INT RS ASSIGN constructors
-   34                 | ID LS . ID RS ASSIGN constructors
-
-    ID   shift, and go to state 50
-    INT  shift, and go to state 51
-
-
-State 21
-
-   29 assign_statement: ID ASSIGN . expression
-   32                 | ID ASSIGN . constructors
-
-    K_PROCESSOR    shift, and go to state 52
-    K_RUN          shift, and go to state 5
-    K_DISCARD_JOB  shift, and go to state 6
-    K_LINK         shift, and go to state 53
-    K_MEMORY       shift, and go to state 54
-    K_JOB          shift, and go to state 55
-    K_CLUSTER      shift, and go to state 56
-    ID             shift, and go to state 26
-    INT            shift, and go to state 27
-    FLOAT          shift, and go to state 28
-    LP             shift, and go to state 29
-    STRING         shift, and go to state 30
-    K_SCHEDULER    shift, and go to state 57
-    K_WAIT         shift, and go to state 8
-
-    function_call_2  go to state 32
-    expression       go to state 58
-    term_prime       go to state 36
-    term             go to state 37
-    factor           go to state 38
-    factor_prime     go to state 39
-    constructors     go to state 59
-
-
-State 22
+State 32
 
     8 statement: ID DOT . function_call_1
 
-    K_IS_RUNNING            shift, and go to state 60
-    K_SUBMIT_JOBS           shift, and go to state 61
-    K_GET_CLOCK_SPEED       shift, and go to state 62
-    K_GET_AVAILABLE_MEMORY  shift, and go to state 63
-    K_GET_MEMORY            shift, and go to state 64
-    K_PRINT_STATS           shift, and go to state 65
+    K_IS_RUNNING            shift, and go to state 68
+    K_GET_CLOCK_SPEED       shift, and go to state 69
+    K_GET_AVAILABLE_MEMORY  shift, and go to state 70
+    K_GET_MEMORY            shift, and go to state 71
+    K_PRINT_STATS           shift, and go to state 72
 
-    function_call_1  go to state 66
-
-
-State 23
-
-   20 function_call_2: K_WAIT LP . expression RP
-
-    K_RUN          shift, and go to state 5
-    K_DISCARD_JOB  shift, and go to state 6
-    ID             shift, and go to state 26
-    INT            shift, and go to state 27
-    FLOAT          shift, and go to state 28
-    LP             shift, and go to state 29
-    STRING         shift, and go to state 30
-    K_WAIT         shift, and go to state 8
-
-    function_call_2  go to state 32
-    expression       go to state 67
-    term_prime       go to state 36
-    term             go to state 37
-    factor           go to state 38
-    factor_prime     go to state 39
+    function_call_1  go to state 73
 
 
-State 24
+State 33
+
+   38 function_call_2: K_PRINT LP . expression RP
+
+    ID       shift, and go to state 48
+    INT      shift, and go to state 49
+    FLOAT    shift, and go to state 50
+    LP       shift, and go to state 51
+    STRING   shift, and go to state 52
+    K_PRINT  shift, and go to state 15
+    K_INPUT  shift, and go to state 16
+
+    IDEXP            go to state 54
+    IDEXP0           go to state 23
+    function_call_2  go to state 55
+    expression       go to state 74
+    term_prime       go to state 59
+    term             go to state 60
+    factor           go to state 61
+    factor_prime     go to state 62
+
+
+State 34
+
+   39 function_call_2: K_INPUT LP . ID RP
+
+    ID  shift, and go to state 75
+
+
+State 35
 
     0 $accept: statements $end .
 
     $default  accept
 
 
-State 25
+State 36
 
     1 statements: statement statements .
 
     $default  reduce using rule 1 (statements)
 
 
-State 26
-
-   44 factor_prime: ID . DOT function_call_1
-   50             | ID .
-
-    DOT  shift, and go to state 68
-
-    $default  reduce using rule 50 (factor_prime)
-
-
-State 27
-
-   46 factor_prime: INT .
-
-    $default  reduce using rule 46 (factor_prime)
-
-
-State 28
-
-   47 factor_prime: FLOAT .
-
-    $default  reduce using rule 47 (factor_prime)
-
-
-State 29
-
-   45 factor_prime: LP . expression RP
-
-    K_RUN          shift, and go to state 5
-    K_DISCARD_JOB  shift, and go to state 6
-    ID             shift, and go to state 26
-    INT            shift, and go to state 27
-    FLOAT          shift, and go to state 28
-    LP             shift, and go to state 29
-    STRING         shift, and go to state 30
-    K_WAIT         shift, and go to state 8
-
-    function_call_2  go to state 32
-    expression       go to state 69
-    term_prime       go to state 36
-    term             go to state 37
-    factor           go to state 38
-    factor_prime     go to state 39
-
-
-State 30
-
-   48 factor_prime: STRING .
-
-    $default  reduce using rule 48 (factor_prime)
-
-
-State 31
-
-   23 bool_returning_statements: L_NOT . bool_returning_statements
-
-    K_RUN          shift, and go to state 5
-    K_DISCARD_JOB  shift, and go to state 6
-    ID             shift, and go to state 26
-    INT            shift, and go to state 27
-    FLOAT          shift, and go to state 28
-    LP             shift, and go to state 29
-    STRING         shift, and go to state 30
-    L_NOT          shift, and go to state 31
-    K_WAIT         shift, and go to state 8
-
-    function_call_2            go to state 32
-    bool_returning_statements  go to state 70
-    bool_returning_statement   go to state 34
-    expression                 go to state 35
-    term_prime                 go to state 36
-    term                       go to state 37
-    factor                     go to state 38
-    factor_prime               go to state 39
-
-
-State 32
-
-   49 factor_prime: function_call_2 .
-
-    $default  reduce using rule 49 (factor_prime)
-
-
-State 33
-
-    4 statement: K_IF LP bool_returning_statements . RP LB statements RB K_ELSE LB statements RB
-
-    RP  shift, and go to state 71
-
-
-State 34
-
-   21 bool_returning_statements: bool_returning_statement . L_AND bool_returning_statements
-   22                          | bool_returning_statement . L_OR bool_returning_statements
-   24                          | bool_returning_statement .
-
-    L_AND  shift, and go to state 72
-    L_OR   shift, and go to state 73
-
-    $default  reduce using rule 24 (bool_returning_statements)
-
-
-State 35
-
-   25 bool_returning_statement: expression .
-
-    $default  reduce using rule 25 (bool_returning_statement)
-
-
-State 36
-
-   35 expression: term_prime . RELOP expression
-   36           | term_prime .
-
-    RELOP  shift, and go to state 74
-
-    $default  reduce using rule 36 (expression)
-
-
 State 37
 
-   37 term_prime: term . PLUS term_prime
-   38           | term . MINUS term_prime
-   39           | term .
+   14 BLOCK_BODY: LB . statements RB
 
-    PLUS   shift, and go to state 75
-    MINUS  shift, and go to state 76
+    K_IF         shift, and go to state 1
+    K_WHILE      shift, and go to state 2
+    K_FOR        shift, and go to state 3
+    K_BEGIN      shift, and go to state 4
+    K_PROCESSOR  shift, and go to state 5
+    K_LINK       shift, and go to state 6
+    K_MEMORY     shift, and go to state 7
+    K_JOB        shift, and go to state 8
+    K_CLUSTER    shift, and go to state 9
+    ID           shift, and go to state 10
+    K_SCHEDULER  shift, and go to state 11
+    K_INT        shift, and go to state 12
+    K_BOOL       shift, and go to state 13
+    K_FLOAT      shift, and go to state 14
+    K_PRINT      shift, and go to state 15
+    K_INPUT      shift, and go to state 16
 
-    $default  reduce using rule 39 (term_prime)
+    $default  reduce using rule 66 (epsilon)
+
+    statements        go to state 76
+    statement         go to state 18
+    K_WHILE_EXP       go to state 19
+    K_IF_EXP          go to state 20
+    K_FOR_EXP         go to state 21
+    IDEXP             go to state 22
+    IDEXP0            go to state 23
+    DType             go to state 24
+    function_call_2   go to state 25
+    assign_statement  go to state 26
+    epsilon           go to state 27
 
 
 State 38
 
-   40 term: factor . MULT term
-   41     | factor . DIV term
-   42     | factor .
+    5 statement: K_WHILE_EXP BLOCK_BODY .
 
-    MULT  shift, and go to state 77
-    DIV   shift, and go to state 78
-
-    $default  reduce using rule 42 (term)
+    $default  reduce using rule 5 (statement)
 
 
 State 39
 
-   43 factor: factor_prime .
+    4 statement: K_IF_EXP BLOCK_BODY . K_ELSE BLOCK_BODY
 
-    $default  reduce using rule 43 (factor)
+    K_ELSE  shift, and go to state 77
 
 
 State 40
 
-    5 statement: K_WHILE LP bool_returning_statements . RP LB statements RB
+    7 statement: K_FOR_EXP BLOCK_BODY .
 
-    RP  shift, and go to state 79
+    $default  reduce using rule 7 (statement)
 
 
 State 41
 
-   29 assign_statement: ID . ASSIGN expression
-   30                 | ID . LS INT RS ASSIGN expression
-   31                 | ID . LS ID RS ASSIGN expression
-   32                 | ID . ASSIGN constructors
-   33                 | ID . LS INT RS ASSIGN constructors
-   34                 | ID . LS ID RS ASSIGN constructors
+   48 assign_statement: IDEXP ASSIGN . expression
 
-    LS      shift, and go to state 20
-    ASSIGN  shift, and go to state 21
+    ID       shift, and go to state 48
+    INT      shift, and go to state 49
+    FLOAT    shift, and go to state 50
+    LP       shift, and go to state 51
+    STRING   shift, and go to state 52
+    K_PRINT  shift, and go to state 15
+    K_INPUT  shift, and go to state 16
+
+    IDEXP            go to state 54
+    IDEXP0           go to state 23
+    function_call_2  go to state 55
+    expression       go to state 78
+    term_prime       go to state 59
+    term             go to state 60
+    factor           go to state 61
+    factor_prime     go to state 62
 
 
 State 42
 
-    7 statement: K_FOR LP assign_statements . SEMI bool_returning_statements SEMI assign_statements RP LB statements RB
+   22 DIM1: LS . INT RS
+   23     | LS . ID RS
 
-    SEMI  shift, and go to state 80
+    ID   shift, and go to state 79
+    INT  shift, and go to state 80
 
 
 State 43
 
-   26 assign_statements: assign_statement . COMMA assign_statements
-   27                  | assign_statement .
+   18 IDEXP: IDEXP0 BR_DIMLIST .
 
-    COMMA  shift, and go to state 81
-
-    $default  reduce using rule 27 (assign_statements)
+    $default  reduce using rule 18 (IDEXP)
 
 
 State 44
 
-   28 assign_statements: epsilon .
+   20 BR_DIMLIST: DIM1 .
+   21           | DIM1 . BR_DIMLIST
 
-    $default  reduce using rule 28 (assign_statements)
+    LS  shift, and go to state 42
+
+    $default  reduce using rule 20 (BR_DIMLIST)
+
+    BR_DIMLIST  go to state 81
+    DIM1        go to state 44
 
 
 State 45
+
+   19 IDEXP0: ID .
+
+    $default  reduce using rule 19 (IDEXP0)
+
+
+State 46
+
+   10 statement: DType DList .
+
+    $default  reduce using rule 10 (statement)
+
+
+State 47
+
+   15 DList: IDEXP . COMMA DList
+   16      | IDEXP .
+
+    COMMA  shift, and go to state 82
+
+    $default  reduce using rule 16 (DList)
+
+
+State 48
+
+   19 IDEXP0: ID .
+   59 factor_prime: ID . DOT function_call_1
+
+    DOT  shift, and go to state 83
+
+    $default  reduce using rule 19 (IDEXP0)
+
+
+State 49
+
+   61 factor_prime: INT .
+
+    $default  reduce using rule 61 (factor_prime)
+
+
+State 50
+
+   62 factor_prime: FLOAT .
+
+    $default  reduce using rule 62 (factor_prime)
+
+
+State 51
+
+   60 factor_prime: LP . expression RP
+
+    ID       shift, and go to state 48
+    INT      shift, and go to state 49
+    FLOAT    shift, and go to state 50
+    LP       shift, and go to state 51
+    STRING   shift, and go to state 52
+    K_PRINT  shift, and go to state 15
+    K_INPUT  shift, and go to state 16
+
+    IDEXP            go to state 54
+    IDEXP0           go to state 23
+    function_call_2  go to state 55
+    expression       go to state 84
+    term_prime       go to state 59
+    term             go to state 60
+    factor           go to state 61
+    factor_prime     go to state 62
+
+
+State 52
+
+   63 factor_prime: STRING .
+
+    $default  reduce using rule 63 (factor_prime)
+
+
+State 53
+
+   42 bool_returning_statements: L_NOT . bool_returning_statements
+
+    ID       shift, and go to state 48
+    INT      shift, and go to state 49
+    FLOAT    shift, and go to state 50
+    LP       shift, and go to state 51
+    STRING   shift, and go to state 52
+    L_NOT    shift, and go to state 53
+    K_PRINT  shift, and go to state 15
+    K_INPUT  shift, and go to state 16
+
+    IDEXP                      go to state 54
+    IDEXP0                     go to state 23
+    function_call_2            go to state 55
+    bool_returning_statements  go to state 85
+    bool_returning_statement   go to state 57
+    expression                 go to state 58
+    term_prime                 go to state 59
+    term                       go to state 60
+    factor                     go to state 61
+    factor_prime               go to state 62
+
+
+State 54
+
+   65 factor_prime: IDEXP .
+
+    $default  reduce using rule 65 (factor_prime)
+
+
+State 55
+
+   64 factor_prime: function_call_2 .
+
+    $default  reduce using rule 64 (factor_prime)
+
+
+State 56
+
+   12 K_IF_EXP: K_IF LP bool_returning_statements . RP
+
+    RP  shift, and go to state 86
+
+
+State 57
+
+   40 bool_returning_statements: bool_returning_statement . L_AND bool_returning_statements
+   41                          | bool_returning_statement . L_OR bool_returning_statements
+   43                          | bool_returning_statement .
+
+    L_AND  shift, and go to state 87
+    L_OR   shift, and go to state 88
+
+    $default  reduce using rule 43 (bool_returning_statements)
+
+
+State 58
+
+   44 bool_returning_statement: expression .
+
+    $default  reduce using rule 44 (bool_returning_statement)
+
+
+State 59
+
+   49 expression: term_prime . RELOPEXP expression
+   50           | term_prime .
+
+    RELOP  shift, and go to state 89
+
+    $default  reduce using rule 50 (expression)
+
+    RELOPEXP  go to state 90
+
+
+State 60
+
+   52 term_prime: term . PLUS term_prime
+   53           | term . MINUS term_prime
+   54           | term .
+
+    PLUS   shift, and go to state 91
+    MINUS  shift, and go to state 92
+
+    $default  reduce using rule 54 (term_prime)
+
+
+State 61
+
+   55 term: factor . MULT term
+   56     | factor . DIV term
+   57     | factor .
+
+    MULT  shift, and go to state 93
+    DIV   shift, and go to state 94
+
+    $default  reduce using rule 57 (term)
+
+
+State 62
+
+   58 factor: factor_prime .
+
+    $default  reduce using rule 58 (factor)
+
+
+State 63
+
+   11 K_WHILE_EXP: K_WHILE LP bool_returning_statements . RP
+
+    RP  shift, and go to state 95
+
+
+State 64
+
+   13 K_FOR_EXP: K_FOR LP assign_statements . SEMI bool_returning_statements SEMI assign_statements RP
+
+    SEMI  shift, and go to state 96
+
+
+State 65
+
+   45 assign_statements: assign_statement . COMMA assign_statements
+   46                  | assign_statement .
+
+    COMMA  shift, and go to state 97
+
+    $default  reduce using rule 46 (assign_statements)
+
+
+State 66
+
+   47 assign_statements: epsilon .
+
+    $default  reduce using rule 47 (assign_statements)
+
+
+State 67
 
     6 statement: K_BEGIN statements K_END .
 
     $default  reduce using rule 6 (statement)
 
 
-State 46
+State 68
 
-   17 function_call_2: K_RUN LP ID . RP
-
-    RP  shift, and go to state 82
-
-
-State 47
-
-  127 array_id: LS . ID array_id_items RS
-
-    ID  shift, and go to state 83
-
-
-State 48
-
-   18 function_call_2: K_RUN LP array_id . RP
-
-    RP  shift, and go to state 84
-
-
-State 49
-
-   19 function_call_2: K_DISCARD_JOB LP expression . RP
-
-    RP  shift, and go to state 85
-
-
-State 50
-
-   31 assign_statement: ID LS ID . RS ASSIGN expression
-   34                 | ID LS ID . RS ASSIGN constructors
-
-    RS  shift, and go to state 86
-
-
-State 51
-
-   30 assign_statement: ID LS INT . RS ASSIGN expression
-   33                 | ID LS INT . RS ASSIGN constructors
-
-    RS  shift, and go to state 87
-
-
-State 52
-
-   51 constructors: K_PROCESSOR . LP processor_params RP
-
-    LP  shift, and go to state 88
-
-
-State 53
-
-   52 constructors: K_LINK . LP link_params RP
-
-    LP  shift, and go to state 89
-
-
-State 54
-
-   53 constructors: K_MEMORY . LP memory_params RP
-
-    LP  shift, and go to state 90
-
-
-State 55
-
-   54 constructors: K_JOB . LP job_params RP
-
-    LP  shift, and go to state 91
-
-
-State 56
-
-   55 constructors: K_CLUSTER . LP cluster_params RP
-
-    LP  shift, and go to state 92
-
-
-State 57
-
-   56 constructors: K_SCHEDULER . LP scheduler_params RP
-
-    LP  shift, and go to state 93
-
-
-State 58
-
-   29 assign_statement: ID ASSIGN expression .
-
-    $default  reduce using rule 29 (assign_statement)
-
-
-State 59
-
-   32 assign_statement: ID ASSIGN constructors .
-
-    $default  reduce using rule 32 (assign_statement)
-
-
-State 60
-
-   10 function_call_1: K_IS_RUNNING . LP RP
-
-    LP  shift, and go to state 94
-
-
-State 61
-
-   11 function_call_1: K_SUBMIT_JOBS . LP ID RP
-   12                | K_SUBMIT_JOBS . LP array_id RP
-
-    LP  shift, and go to state 95
-
-
-State 62
-
-   13 function_call_1: K_GET_CLOCK_SPEED . LP RP
-
-    LP  shift, and go to state 96
-
-
-State 63
-
-   14 function_call_1: K_GET_AVAILABLE_MEMORY . LP RP
-
-    LP  shift, and go to state 97
-
-
-State 64
-
-   15 function_call_1: K_GET_MEMORY . LP RP
+   33 function_call_1: K_IS_RUNNING . LP RP
 
     LP  shift, and go to state 98
 
 
-State 65
+State 69
 
-   16 function_call_1: K_PRINT_STATS . LP RP
+   34 function_call_1: K_GET_CLOCK_SPEED . LP RP
 
     LP  shift, and go to state 99
 
 
-State 66
+State 70
+
+   35 function_call_1: K_GET_AVAILABLE_MEMORY . LP RP
+
+    LP  shift, and go to state 100
+
+
+State 71
+
+   36 function_call_1: K_GET_MEMORY . LP RP
+
+    LP  shift, and go to state 101
+
+
+State 72
+
+   37 function_call_1: K_PRINT_STATS . LP RP
+
+    LP  shift, and go to state 102
+
+
+State 73
 
     8 statement: ID DOT function_call_1 .
 
     $default  reduce using rule 8 (statement)
 
 
-State 67
-
-   20 function_call_2: K_WAIT LP expression . RP
-
-    RP  shift, and go to state 100
-
-
-State 68
-
-   44 factor_prime: ID DOT . function_call_1
-
-    K_IS_RUNNING            shift, and go to state 60
-    K_SUBMIT_JOBS           shift, and go to state 61
-    K_GET_CLOCK_SPEED       shift, and go to state 62
-    K_GET_AVAILABLE_MEMORY  shift, and go to state 63
-    K_GET_MEMORY            shift, and go to state 64
-    K_PRINT_STATS           shift, and go to state 65
-
-    function_call_1  go to state 101
-
-
-State 69
-
-   45 factor_prime: LP expression . RP
-
-    RP  shift, and go to state 102
-
-
-State 70
-
-   23 bool_returning_statements: L_NOT bool_returning_statements .
-
-    $default  reduce using rule 23 (bool_returning_statements)
-
-
-State 71
-
-    4 statement: K_IF LP bool_returning_statements RP . LB statements RB K_ELSE LB statements RB
-
-    LB  shift, and go to state 103
-
-
-State 72
-
-   21 bool_returning_statements: bool_returning_statement L_AND . bool_returning_statements
-
-    K_RUN          shift, and go to state 5
-    K_DISCARD_JOB  shift, and go to state 6
-    ID             shift, and go to state 26
-    INT            shift, and go to state 27
-    FLOAT          shift, and go to state 28
-    LP             shift, and go to state 29
-    STRING         shift, and go to state 30
-    L_NOT          shift, and go to state 31
-    K_WAIT         shift, and go to state 8
-
-    function_call_2            go to state 32
-    bool_returning_statements  go to state 104
-    bool_returning_statement   go to state 34
-    expression                 go to state 35
-    term_prime                 go to state 36
-    term                       go to state 37
-    factor                     go to state 38
-    factor_prime               go to state 39
-
-
-State 73
-
-   22 bool_returning_statements: bool_returning_statement L_OR . bool_returning_statements
-
-    K_RUN          shift, and go to state 5
-    K_DISCARD_JOB  shift, and go to state 6
-    ID             shift, and go to state 26
-    INT            shift, and go to state 27
-    FLOAT          shift, and go to state 28
-    LP             shift, and go to state 29
-    STRING         shift, and go to state 30
-    L_NOT          shift, and go to state 31
-    K_WAIT         shift, and go to state 8
-
-    function_call_2            go to state 32
-    bool_returning_statements  go to state 105
-    bool_returning_statement   go to state 34
-    expression                 go to state 35
-    term_prime                 go to state 36
-    term                       go to state 37
-    factor                     go to state 38
-    factor_prime               go to state 39
-
-
 State 74
 
-   35 expression: term_prime RELOP . expression
+   38 function_call_2: K_PRINT LP expression . RP
 
-    K_RUN          shift, and go to state 5
-    K_DISCARD_JOB  shift, and go to state 6
-    ID             shift, and go to state 26
-    INT            shift, and go to state 27
-    FLOAT          shift, and go to state 28
-    LP             shift, and go to state 29
-    STRING         shift, and go to state 30
-    K_WAIT         shift, and go to state 8
-
-    function_call_2  go to state 32
-    expression       go to state 106
-    term_prime       go to state 36
-    term             go to state 37
-    factor           go to state 38
-    factor_prime     go to state 39
+    RP  shift, and go to state 103
 
 
 State 75
 
-   37 term_prime: term PLUS . term_prime
+   39 function_call_2: K_INPUT LP ID . RP
 
-    K_RUN          shift, and go to state 5
-    K_DISCARD_JOB  shift, and go to state 6
-    ID             shift, and go to state 26
-    INT            shift, and go to state 27
-    FLOAT          shift, and go to state 28
-    LP             shift, and go to state 29
-    STRING         shift, and go to state 30
-    K_WAIT         shift, and go to state 8
-
-    function_call_2  go to state 32
-    term_prime       go to state 107
-    term             go to state 37
-    factor           go to state 38
-    factor_prime     go to state 39
+    RP  shift, and go to state 104
 
 
 State 76
 
-   38 term_prime: term MINUS . term_prime
+   14 BLOCK_BODY: LB statements . RB
 
-    K_RUN          shift, and go to state 5
-    K_DISCARD_JOB  shift, and go to state 6
-    ID             shift, and go to state 26
-    INT            shift, and go to state 27
-    FLOAT          shift, and go to state 28
-    LP             shift, and go to state 29
-    STRING         shift, and go to state 30
-    K_WAIT         shift, and go to state 8
-
-    function_call_2  go to state 32
-    term_prime       go to state 108
-    term             go to state 37
-    factor           go to state 38
-    factor_prime     go to state 39
+    RB  shift, and go to state 105
 
 
 State 77
 
-   40 term: factor MULT . term
+    4 statement: K_IF_EXP BLOCK_BODY K_ELSE . BLOCK_BODY
 
-    K_RUN          shift, and go to state 5
-    K_DISCARD_JOB  shift, and go to state 6
-    ID             shift, and go to state 26
-    INT            shift, and go to state 27
-    FLOAT          shift, and go to state 28
-    LP             shift, and go to state 29
-    STRING         shift, and go to state 30
-    K_WAIT         shift, and go to state 8
+    LB  shift, and go to state 37
 
-    function_call_2  go to state 32
-    term             go to state 109
-    factor           go to state 38
-    factor_prime     go to state 39
+    BLOCK_BODY  go to state 106
 
 
 State 78
 
-   41 term: factor DIV . term
+   48 assign_statement: IDEXP ASSIGN expression .
 
-    K_RUN          shift, and go to state 5
-    K_DISCARD_JOB  shift, and go to state 6
-    ID             shift, and go to state 26
-    INT            shift, and go to state 27
-    FLOAT          shift, and go to state 28
-    LP             shift, and go to state 29
-    STRING         shift, and go to state 30
-    K_WAIT         shift, and go to state 8
-
-    function_call_2  go to state 32
-    term             go to state 110
-    factor           go to state 38
-    factor_prime     go to state 39
+    $default  reduce using rule 48 (assign_statement)
 
 
 State 79
 
-    5 statement: K_WHILE LP bool_returning_statements RP . LB statements RB
+   23 DIM1: LS ID . RS
 
-    LB  shift, and go to state 111
+    RS  shift, and go to state 107
 
 
 State 80
 
-    7 statement: K_FOR LP assign_statements SEMI . bool_returning_statements SEMI assign_statements RP LB statements RB
+   22 DIM1: LS INT . RS
 
-    K_RUN          shift, and go to state 5
-    K_DISCARD_JOB  shift, and go to state 6
-    ID             shift, and go to state 26
-    INT            shift, and go to state 27
-    FLOAT          shift, and go to state 28
-    LP             shift, and go to state 29
-    STRING         shift, and go to state 30
-    L_NOT          shift, and go to state 31
-    K_WAIT         shift, and go to state 8
-
-    function_call_2            go to state 32
-    bool_returning_statements  go to state 112
-    bool_returning_statement   go to state 34
-    expression                 go to state 35
-    term_prime                 go to state 36
-    term                       go to state 37
-    factor                     go to state 38
-    factor_prime               go to state 39
+    RS  shift, and go to state 108
 
 
 State 81
 
-   26 assign_statements: assign_statement COMMA . assign_statements
+   21 BR_DIMLIST: DIM1 BR_DIMLIST .
 
-    ID  shift, and go to state 41
-
-    $default  reduce using rule 130 (epsilon)
-
-    assign_statements  go to state 113
-    assign_statement   go to state 43
-    epsilon            go to state 44
+    $default  reduce using rule 21 (BR_DIMLIST)
 
 
 State 82
 
-   17 function_call_2: K_RUN LP ID RP .
+   15 DList: IDEXP COMMA . DList
 
-    $default  reduce using rule 17 (function_call_2)
+    ID  shift, and go to state 45
+
+    DList   go to state 109
+    IDEXP   go to state 47
+    IDEXP0  go to state 23
 
 
 State 83
 
-  127 array_id: LS ID . array_id_items RS
+   59 factor_prime: ID DOT . function_call_1
 
-    COMMA  shift, and go to state 114
+    K_IS_RUNNING            shift, and go to state 68
+    K_GET_CLOCK_SPEED       shift, and go to state 69
+    K_GET_AVAILABLE_MEMORY  shift, and go to state 70
+    K_GET_MEMORY            shift, and go to state 71
+    K_PRINT_STATS           shift, and go to state 72
 
-    $default  reduce using rule 130 (epsilon)
-
-    array_id_items  go to state 115
-    epsilon         go to state 116
+    function_call_1  go to state 110
 
 
 State 84
 
-   18 function_call_2: K_RUN LP array_id RP .
+   60 factor_prime: LP expression . RP
 
-    $default  reduce using rule 18 (function_call_2)
+    RP  shift, and go to state 111
 
 
 State 85
 
-   19 function_call_2: K_DISCARD_JOB LP expression RP .
+   42 bool_returning_statements: L_NOT bool_returning_statements .
 
-    $default  reduce using rule 19 (function_call_2)
+    $default  reduce using rule 42 (bool_returning_statements)
 
 
 State 86
 
-   31 assign_statement: ID LS ID RS . ASSIGN expression
-   34                 | ID LS ID RS . ASSIGN constructors
+   12 K_IF_EXP: K_IF LP bool_returning_statements RP .
 
-    ASSIGN  shift, and go to state 117
+    $default  reduce using rule 12 (K_IF_EXP)
 
 
 State 87
 
-   30 assign_statement: ID LS INT RS . ASSIGN expression
-   33                 | ID LS INT RS . ASSIGN constructors
+   40 bool_returning_statements: bool_returning_statement L_AND . bool_returning_statements
 
-    ASSIGN  shift, and go to state 118
+    ID       shift, and go to state 48
+    INT      shift, and go to state 49
+    FLOAT    shift, and go to state 50
+    LP       shift, and go to state 51
+    STRING   shift, and go to state 52
+    L_NOT    shift, and go to state 53
+    K_PRINT  shift, and go to state 15
+    K_INPUT  shift, and go to state 16
+
+    IDEXP                      go to state 54
+    IDEXP0                     go to state 23
+    function_call_2            go to state 55
+    bool_returning_statements  go to state 112
+    bool_returning_statement   go to state 57
+    expression                 go to state 58
+    term_prime                 go to state 59
+    term                       go to state 60
+    factor                     go to state 61
+    factor_prime               go to state 62
 
 
 State 88
 
-   51 constructors: K_PROCESSOR LP . processor_params RP
+   41 bool_returning_statements: bool_returning_statement L_OR . bool_returning_statements
 
-    K_ISA  shift, and go to state 119
+    ID       shift, and go to state 48
+    INT      shift, and go to state 49
+    FLOAT    shift, and go to state 50
+    LP       shift, and go to state 51
+    STRING   shift, and go to state 52
+    L_NOT    shift, and go to state 53
+    K_PRINT  shift, and go to state 15
+    K_INPUT  shift, and go to state 16
 
-    processor_params     go to state 120
-    processor_param_isa  go to state 121
+    IDEXP                      go to state 54
+    IDEXP0                     go to state 23
+    function_call_2            go to state 55
+    bool_returning_statements  go to state 113
+    bool_returning_statement   go to state 57
+    expression                 go to state 58
+    term_prime                 go to state 59
+    term                       go to state 60
+    factor                     go to state 61
+    factor_prime               go to state 62
 
 
 State 89
 
-   52 constructors: K_LINK LP . link_params RP
+   51 RELOPEXP: RELOP .
 
-    K_START_POINT  shift, and go to state 122
-
-    link_params             go to state 123
-    link_param_start_point  go to state 124
+    $default  reduce using rule 51 (RELOPEXP)
 
 
 State 90
 
-   53 constructors: K_MEMORY LP . memory_params RP
+   49 expression: term_prime RELOPEXP . expression
 
-    K_MEMORY_TYPE  shift, and go to state 125
+    ID       shift, and go to state 48
+    INT      shift, and go to state 49
+    FLOAT    shift, and go to state 50
+    LP       shift, and go to state 51
+    STRING   shift, and go to state 52
+    K_PRINT  shift, and go to state 15
+    K_INPUT  shift, and go to state 16
 
-    memory_params             go to state 126
-    memory_param_memory_type  go to state 127
+    IDEXP            go to state 54
+    IDEXP0           go to state 23
+    function_call_2  go to state 55
+    expression       go to state 114
+    term_prime       go to state 59
+    term             go to state 60
+    factor           go to state 61
+    factor_prime     go to state 62
 
 
 State 91
 
-   54 constructors: K_JOB LP . job_params RP
+   52 term_prime: term PLUS . term_prime
 
-    K_JOB_ID  shift, and go to state 128
-    COMMA     shift, and go to state 129
+    ID       shift, and go to state 48
+    INT      shift, and go to state 49
+    FLOAT    shift, and go to state 50
+    LP       shift, and go to state 51
+    STRING   shift, and go to state 52
+    K_PRINT  shift, and go to state 15
+    K_INPUT  shift, and go to state 16
 
-    job_params        go to state 130
-    job_param_job_id  go to state 131
+    IDEXP            go to state 54
+    IDEXP0           go to state 23
+    function_call_2  go to state 55
+    term_prime       go to state 115
+    term             go to state 60
+    factor           go to state 61
+    factor_prime     go to state 62
 
 
 State 92
 
-   55 constructors: K_CLUSTER LP . cluster_params RP
+   53 term_prime: term MINUS . term_prime
 
-    K_PROCESSORS  shift, and go to state 132
+    ID       shift, and go to state 48
+    INT      shift, and go to state 49
+    FLOAT    shift, and go to state 50
+    LP       shift, and go to state 51
+    STRING   shift, and go to state 52
+    K_PRINT  shift, and go to state 15
+    K_INPUT  shift, and go to state 16
 
-    cluster_params            go to state 133
-    cluster_param_processors  go to state 134
+    IDEXP            go to state 54
+    IDEXP0           go to state 23
+    function_call_2  go to state 55
+    term_prime       go to state 116
+    term             go to state 60
+    factor           go to state 61
+    factor_prime     go to state 62
 
 
 State 93
 
-   56 constructors: K_SCHEDULER LP . scheduler_params RP
+   55 term: factor MULT . term
 
-    K_JOBS  shift, and go to state 135
+    ID       shift, and go to state 48
+    INT      shift, and go to state 49
+    FLOAT    shift, and go to state 50
+    LP       shift, and go to state 51
+    STRING   shift, and go to state 52
+    K_PRINT  shift, and go to state 15
+    K_INPUT  shift, and go to state 16
 
-    scheduler_params      go to state 136
-    scheduler_param_jobs  go to state 137
+    IDEXP            go to state 54
+    IDEXP0           go to state 23
+    function_call_2  go to state 55
+    term             go to state 117
+    factor           go to state 61
+    factor_prime     go to state 62
 
 
 State 94
 
-   10 function_call_1: K_IS_RUNNING LP . RP
+   56 term: factor DIV . term
 
-    RP  shift, and go to state 138
+    ID       shift, and go to state 48
+    INT      shift, and go to state 49
+    FLOAT    shift, and go to state 50
+    LP       shift, and go to state 51
+    STRING   shift, and go to state 52
+    K_PRINT  shift, and go to state 15
+    K_INPUT  shift, and go to state 16
+
+    IDEXP            go to state 54
+    IDEXP0           go to state 23
+    function_call_2  go to state 55
+    term             go to state 118
+    factor           go to state 61
+    factor_prime     go to state 62
 
 
 State 95
 
-   11 function_call_1: K_SUBMIT_JOBS LP . ID RP
-   12                | K_SUBMIT_JOBS LP . array_id RP
+   11 K_WHILE_EXP: K_WHILE LP bool_returning_statements RP .
 
-    ID  shift, and go to state 139
-    LS  shift, and go to state 47
-
-    array_id  go to state 140
+    $default  reduce using rule 11 (K_WHILE_EXP)
 
 
 State 96
 
-   13 function_call_1: K_GET_CLOCK_SPEED LP . RP
+   13 K_FOR_EXP: K_FOR LP assign_statements SEMI . bool_returning_statements SEMI assign_statements RP
 
-    RP  shift, and go to state 141
+    ID       shift, and go to state 48
+    INT      shift, and go to state 49
+    FLOAT    shift, and go to state 50
+    LP       shift, and go to state 51
+    STRING   shift, and go to state 52
+    L_NOT    shift, and go to state 53
+    K_PRINT  shift, and go to state 15
+    K_INPUT  shift, and go to state 16
+
+    IDEXP                      go to state 54
+    IDEXP0                     go to state 23
+    function_call_2            go to state 55
+    bool_returning_statements  go to state 119
+    bool_returning_statement   go to state 57
+    expression                 go to state 58
+    term_prime                 go to state 59
+    term                       go to state 60
+    factor                     go to state 61
+    factor_prime               go to state 62
 
 
 State 97
 
-   14 function_call_1: K_GET_AVAILABLE_MEMORY LP . RP
+   45 assign_statements: assign_statement COMMA . assign_statements
 
-    RP  shift, and go to state 142
+    ID  shift, and go to state 45
+
+    $default  reduce using rule 66 (epsilon)
+
+    IDEXP              go to state 22
+    IDEXP0             go to state 23
+    assign_statements  go to state 120
+    assign_statement   go to state 65
+    epsilon            go to state 66
 
 
 State 98
 
-   15 function_call_1: K_GET_MEMORY LP . RP
+   33 function_call_1: K_IS_RUNNING LP . RP
 
-    RP  shift, and go to state 143
+    RP  shift, and go to state 121
 
 
 State 99
 
-   16 function_call_1: K_PRINT_STATS LP . RP
+   34 function_call_1: K_GET_CLOCK_SPEED LP . RP
 
-    RP  shift, and go to state 144
+    RP  shift, and go to state 122
 
 
 State 100
 
-   20 function_call_2: K_WAIT LP expression RP .
+   35 function_call_1: K_GET_AVAILABLE_MEMORY LP . RP
 
-    $default  reduce using rule 20 (function_call_2)
+    RP  shift, and go to state 123
 
 
 State 101
 
-   44 factor_prime: ID DOT function_call_1 .
+   36 function_call_1: K_GET_MEMORY LP . RP
 
-    $default  reduce using rule 44 (factor_prime)
+    RP  shift, and go to state 124
 
 
 State 102
 
-   45 factor_prime: LP expression RP .
+   37 function_call_1: K_PRINT_STATS LP . RP
 
-    $default  reduce using rule 45 (factor_prime)
+    RP  shift, and go to state 125
 
 
 State 103
 
-    4 statement: K_IF LP bool_returning_statements RP LB . statements RB K_ELSE LB statements RB
+   38 function_call_2: K_PRINT LP expression RP .
 
-    K_IF           shift, and go to state 1
-    K_WHILE        shift, and go to state 2
-    K_FOR          shift, and go to state 3
-    K_BEGIN        shift, and go to state 4
-    K_RUN          shift, and go to state 5
-    K_DISCARD_JOB  shift, and go to state 6
-    ID             shift, and go to state 7
-    K_WAIT         shift, and go to state 8
-
-    $default  reduce using rule 130 (epsilon)
-
-    statements        go to state 145
-    statement         go to state 10
-    function_call_2   go to state 11
-    assign_statement  go to state 12
-    epsilon           go to state 13
+    $default  reduce using rule 38 (function_call_2)
 
 
 State 104
 
-   21 bool_returning_statements: bool_returning_statement L_AND bool_returning_statements .
+   39 function_call_2: K_INPUT LP ID RP .
 
-    $default  reduce using rule 21 (bool_returning_statements)
+    $default  reduce using rule 39 (function_call_2)
 
 
 State 105
 
-   22 bool_returning_statements: bool_returning_statement L_OR bool_returning_statements .
+   14 BLOCK_BODY: LB statements RB .
 
-    $default  reduce using rule 22 (bool_returning_statements)
+    $default  reduce using rule 14 (BLOCK_BODY)
 
 
 State 106
 
-   35 expression: term_prime RELOP expression .
-
-    $default  reduce using rule 35 (expression)
-
-
-State 107
-
-   37 term_prime: term PLUS term_prime .
-
-    $default  reduce using rule 37 (term_prime)
-
-
-State 108
-
-   38 term_prime: term MINUS term_prime .
-
-    $default  reduce using rule 38 (term_prime)
-
-
-State 109
-
-   40 term: factor MULT term .
-
-    $default  reduce using rule 40 (term)
-
-
-State 110
-
-   41 term: factor DIV term .
-
-    $default  reduce using rule 41 (term)
-
-
-State 111
-
-    5 statement: K_WHILE LP bool_returning_statements RP LB . statements RB
-
-    K_IF           shift, and go to state 1
-    K_WHILE        shift, and go to state 2
-    K_FOR          shift, and go to state 3
-    K_BEGIN        shift, and go to state 4
-    K_RUN          shift, and go to state 5
-    K_DISCARD_JOB  shift, and go to state 6
-    ID             shift, and go to state 7
-    K_WAIT         shift, and go to state 8
-
-    $default  reduce using rule 130 (epsilon)
-
-    statements        go to state 146
-    statement         go to state 10
-    function_call_2   go to state 11
-    assign_statement  go to state 12
-    epsilon           go to state 13
-
-
-State 112
-
-    7 statement: K_FOR LP assign_statements SEMI bool_returning_statements . SEMI assign_statements RP LB statements RB
-
-    SEMI  shift, and go to state 147
-
-
-State 113
-
-   26 assign_statements: assign_statement COMMA assign_statements .
-
-    $default  reduce using rule 26 (assign_statements)
-
-
-State 114
-
-  128 array_id_items: COMMA . ID array_id_items
-
-    ID  shift, and go to state 148
-
-
-State 115
-
-  127 array_id: LS ID array_id_items . RS
-
-    RS  shift, and go to state 149
-
-
-State 116
-
-  129 array_id_items: epsilon .
-
-    $default  reduce using rule 129 (array_id_items)
-
-
-State 117
-
-   31 assign_statement: ID LS ID RS ASSIGN . expression
-   34                 | ID LS ID RS ASSIGN . constructors
-
-    K_PROCESSOR    shift, and go to state 52
-    K_RUN          shift, and go to state 5
-    K_DISCARD_JOB  shift, and go to state 6
-    K_LINK         shift, and go to state 53
-    K_MEMORY       shift, and go to state 54
-    K_JOB          shift, and go to state 55
-    K_CLUSTER      shift, and go to state 56
-    ID             shift, and go to state 26
-    INT            shift, and go to state 27
-    FLOAT          shift, and go to state 28
-    LP             shift, and go to state 29
-    STRING         shift, and go to state 30
-    K_SCHEDULER    shift, and go to state 57
-    K_WAIT         shift, and go to state 8
-
-    function_call_2  go to state 32
-    expression       go to state 150
-    term_prime       go to state 36
-    term             go to state 37
-    factor           go to state 38
-    factor_prime     go to state 39
-    constructors     go to state 151
-
-
-State 118
-
-   30 assign_statement: ID LS INT RS ASSIGN . expression
-   33                 | ID LS INT RS ASSIGN . constructors
-
-    K_PROCESSOR    shift, and go to state 52
-    K_RUN          shift, and go to state 5
-    K_DISCARD_JOB  shift, and go to state 6
-    K_LINK         shift, and go to state 53
-    K_MEMORY       shift, and go to state 54
-    K_JOB          shift, and go to state 55
-    K_CLUSTER      shift, and go to state 56
-    ID             shift, and go to state 26
-    INT            shift, and go to state 27
-    FLOAT          shift, and go to state 28
-    LP             shift, and go to state 29
-    STRING         shift, and go to state 30
-    K_SCHEDULER    shift, and go to state 57
-    K_WAIT         shift, and go to state 8
-
-    function_call_2  go to state 32
-    expression       go to state 152
-    term_prime       go to state 36
-    term             go to state 37
-    factor           go to state 38
-    factor_prime     go to state 39
-    constructors     go to state 153
-
-
-State 119
-
-   66 processor_param_isa: K_ISA . ASSIGN ISA_values
-
-    ASSIGN  shift, and go to state 154
-
-
-State 120
-
-   51 constructors: K_PROCESSOR LP processor_params . RP
-
-    RP  shift, and go to state 155
-
-
-State 121
-
-   57 processor_params: processor_param_isa . processor_param_clock_speed processor_param_l1_memory
-   58                 | processor_param_isa . processor_param_clock_speed processor_param_l1_memory COMMA processor_param_l2_memory COMMA processor_param_name
-   59                 | processor_param_isa . processor_param_clock_speed processor_param_l1_memory COMMA processor_param_l2_memory
-   60                 | processor_param_isa . processor_param_clock_speed processor_param_l1_memory COMMA processor_param_name
-
-    COMMA  shift, and go to state 156
-
-    processor_param_clock_speed  go to state 157
-
-
-State 122
-
-   77 link_param_start_point: K_START_POINT . ASSIGN STRING
-   78                       | K_START_POINT . ASSIGN ID
-
-    ASSIGN  shift, and go to state 158
-
-
-State 123
-
-   52 constructors: K_LINK LP link_params . RP
-
-    RP  shift, and go to state 159
-
-
-State 124
-
-   61 link_params: link_param_start_point . link_param_end_point link_param_bandwidth link_param_channel_capacity link_param_name
-
-    COMMA  shift, and go to state 160
-
-    link_param_end_point  go to state 161
-
-
-State 125
-
-   88 memory_param_memory_type: K_MEMORY_TYPE . ASSIGN memory_type_values
-
-    ASSIGN  shift, and go to state 162
-
-
-State 126
-
-   53 constructors: K_MEMORY LP memory_params . RP
-
-    RP  shift, and go to state 163
-
-
-State 127
-
-   62 memory_params: memory_param_memory_type . memory_param_mem_size memory_param_name
-
-    COMMA  shift, and go to state 164
-
-    memory_param_mem_size  go to state 165
-
-
-State 128
-
-   96 job_param_job_id: K_JOB_ID . ASSIGN expression
-
-    ASSIGN  shift, and go to state 166
-
-
-State 129
-
-   97 job_param_job_id: COMMA . expression
-
-    K_RUN          shift, and go to state 5
-    K_DISCARD_JOB  shift, and go to state 6
-    ID             shift, and go to state 26
-    INT            shift, and go to state 27
-    FLOAT          shift, and go to state 28
-    LP             shift, and go to state 29
-    STRING         shift, and go to state 30
-    K_WAIT         shift, and go to state 8
-
-    function_call_2  go to state 32
-    expression       go to state 167
-    term_prime       go to state 36
-    term             go to state 37
-    factor           go to state 38
-    factor_prime     go to state 39
-
-
-State 130
-
-   54 constructors: K_JOB LP job_params . RP
-
-    RP  shift, and go to state 168
-
-
-State 131
-
-   63 job_params: job_param_job_id . job_param_flops_required job_param_deadline job_param_mem_required job_param_affinity
-
-    COMMA  shift, and go to state 169
-
-    job_param_flops_required  go to state 170
-
-
-State 132
-
-  106 cluster_param_processors: K_PROCESSORS . ASSIGN array_id
-  107                         | K_PROCESSORS . ASSIGN ID
-
-    ASSIGN  shift, and go to state 171
-
-
-State 133
-
-   55 constructors: K_CLUSTER LP cluster_params . RP
-
-    RP  shift, and go to state 172
-
-
-State 134
-
-   64 cluster_params: cluster_param_processors . cluster_param_topology cluster_param_link_bandwidth cluster_param_link_capacity cluster_param_name
-
-    COMMA  shift, and go to state 173
-
-    cluster_param_topology  go to state 174
-
-
-State 135
-
-  115 scheduler_param_jobs: K_JOBS . ASSIGN array_id
-  116                     | K_JOBS . ASSIGN ID
-
-    ASSIGN  shift, and go to state 175
-
-
-State 136
-
-   56 constructors: K_SCHEDULER LP scheduler_params . RP
-
-    RP  shift, and go to state 176
-
-
-State 137
-
-   65 scheduler_params: scheduler_param_jobs . scheduler_param_processors scheduler_param_algo
-
-    COMMA  shift, and go to state 177
-
-    scheduler_param_processors  go to state 178
-
-
-State 138
-
-   10 function_call_1: K_IS_RUNNING LP RP .
-
-    $default  reduce using rule 10 (function_call_1)
-
-
-State 139
-
-   11 function_call_1: K_SUBMIT_JOBS LP ID . RP
-
-    RP  shift, and go to state 179
-
-
-State 140
-
-   12 function_call_1: K_SUBMIT_JOBS LP array_id . RP
-
-    RP  shift, and go to state 180
-
-
-State 141
-
-   13 function_call_1: K_GET_CLOCK_SPEED LP RP .
-
-    $default  reduce using rule 13 (function_call_1)
-
-
-State 142
-
-   14 function_call_1: K_GET_AVAILABLE_MEMORY LP RP .
-
-    $default  reduce using rule 14 (function_call_1)
-
-
-State 143
-
-   15 function_call_1: K_GET_MEMORY LP RP .
-
-    $default  reduce using rule 15 (function_call_1)
-
-
-State 144
-
-   16 function_call_1: K_PRINT_STATS LP RP .
-
-    $default  reduce using rule 16 (function_call_1)
-
-
-State 145
-
-    4 statement: K_IF LP bool_returning_statements RP LB statements . RB K_ELSE LB statements RB
-
-    RB  shift, and go to state 181
-
-
-State 146
-
-    5 statement: K_WHILE LP bool_returning_statements RP LB statements . RB
-
-    RB  shift, and go to state 182
-
-
-State 147
-
-    7 statement: K_FOR LP assign_statements SEMI bool_returning_statements SEMI . assign_statements RP LB statements RB
-
-    ID  shift, and go to state 41
-
-    $default  reduce using rule 130 (epsilon)
-
-    assign_statements  go to state 183
-    assign_statement   go to state 43
-    epsilon            go to state 44
-
-
-State 148
-
-  128 array_id_items: COMMA ID . array_id_items
-
-    COMMA  shift, and go to state 114
-
-    $default  reduce using rule 130 (epsilon)
-
-    array_id_items  go to state 184
-    epsilon         go to state 116
-
-
-State 149
-
-  127 array_id: LS ID array_id_items RS .
-
-    $default  reduce using rule 127 (array_id)
-
-
-State 150
-
-   31 assign_statement: ID LS ID RS ASSIGN expression .
-
-    $default  reduce using rule 31 (assign_statement)
-
-
-State 151
-
-   34 assign_statement: ID LS ID RS ASSIGN constructors .
-
-    $default  reduce using rule 34 (assign_statement)
-
-
-State 152
-
-   30 assign_statement: ID LS INT RS ASSIGN expression .
-
-    $default  reduce using rule 30 (assign_statement)
-
-
-State 153
-
-   33 assign_statement: ID LS INT RS ASSIGN constructors .
-
-    $default  reduce using rule 33 (assign_statement)
-
-
-State 154
-
-   66 processor_param_isa: K_ISA ASSIGN . ISA_values
-
-    K_ARM   shift, and go to state 185
-    K_AMD   shift, and go to state 186
-    K_CDC   shift, and go to state 187
-    K_MIPS  shift, and go to state 188
-
-    ISA_values  go to state 189
-
-
-State 155
-
-   51 constructors: K_PROCESSOR LP processor_params RP .
-
-    $default  reduce using rule 51 (constructors)
-
-
-State 156
-
-   71 processor_param_clock_speed: COMMA . K_CLOCK_SPEED COLON expression
-
-    K_CLOCK_SPEED  shift, and go to state 190
-
-
-State 157
-
-   57 processor_params: processor_param_isa processor_param_clock_speed . processor_param_l1_memory
-   58                 | processor_param_isa processor_param_clock_speed . processor_param_l1_memory COMMA processor_param_l2_memory COMMA processor_param_name
-   59                 | processor_param_isa processor_param_clock_speed . processor_param_l1_memory COMMA processor_param_l2_memory
-   60                 | processor_param_isa processor_param_clock_speed . processor_param_l1_memory COMMA processor_param_name
-
-    COMMA  shift, and go to state 191
-
-    processor_param_l1_memory  go to state 192
-
-
-State 158
-
-   77 link_param_start_point: K_START_POINT ASSIGN . STRING
-   78                       | K_START_POINT ASSIGN . ID
-
-    ID      shift, and go to state 193
-    STRING  shift, and go to state 194
-
-
-State 159
-
-   52 constructors: K_LINK LP link_params RP .
-
-    $default  reduce using rule 52 (constructors)
-
-
-State 160
-
-   79 link_param_end_point: COMMA . K_END_POINT ASSIGN STRING
-   80                     | COMMA . K_END_POINT ASSIGN ID
-
-    K_END_POINT  shift, and go to state 195
-
-
-State 161
-
-   61 link_params: link_param_start_point link_param_end_point . link_param_bandwidth link_param_channel_capacity link_param_name
-
-    COMMA  shift, and go to state 196
-
-    link_param_bandwidth  go to state 197
-
-
-State 162
-
-   88 memory_param_memory_type: K_MEMORY_TYPE ASSIGN . memory_type_values
-
-    K_PRIMARY    shift, and go to state 198
-    K_SECONDARY  shift, and go to state 199
-    K_CACHE      shift, and go to state 200
-
-    memory_type_values  go to state 201
-
-
-State 163
-
-   53 constructors: K_MEMORY LP memory_params RP .
-
-    $default  reduce using rule 53 (constructors)
-
-
-State 164
-
-   89 memory_param_mem_size: COMMA . K_MEM_SIZE ASSIGN expression
-
-    K_MEM_SIZE  shift, and go to state 202
-
-
-State 165
-
-   62 memory_params: memory_param_memory_type memory_param_mem_size . memory_param_name
-
-    COMMA  shift, and go to state 203
-
-    $default  reduce using rule 130 (epsilon)
-
-    memory_param_name  go to state 204
-    epsilon            go to state 205
-
-
-State 166
-
-   96 job_param_job_id: K_JOB_ID ASSIGN . expression
-
-    K_RUN          shift, and go to state 5
-    K_DISCARD_JOB  shift, and go to state 6
-    ID             shift, and go to state 26
-    INT            shift, and go to state 27
-    FLOAT          shift, and go to state 28
-    LP             shift, and go to state 29
-    STRING         shift, and go to state 30
-    K_WAIT         shift, and go to state 8
-
-    function_call_2  go to state 32
-    expression       go to state 206
-    term_prime       go to state 36
-    term             go to state 37
-    factor           go to state 38
-    factor_prime     go to state 39
-
-
-State 167
-
-   97 job_param_job_id: COMMA expression .
-
-    $default  reduce using rule 97 (job_param_job_id)
-
-
-State 168
-
-   54 constructors: K_JOB LP job_params RP .
-
-    $default  reduce using rule 54 (constructors)
-
-
-State 169
-
-   98 job_param_flops_required: COMMA . K_FLOPS_REQUIRED ASSIGN expression
-   99                         | COMMA . expression
-
-    K_RUN             shift, and go to state 5
-    K_DISCARD_JOB     shift, and go to state 6
-    K_FLOPS_REQUIRED  shift, and go to state 207
-    ID                shift, and go to state 26
-    INT               shift, and go to state 27
-    FLOAT             shift, and go to state 28
-    LP                shift, and go to state 29
-    STRING            shift, and go to state 30
-    K_WAIT            shift, and go to state 8
-
-    function_call_2  go to state 32
-    expression       go to state 208
-    term_prime       go to state 36
-    term             go to state 37
-    factor           go to state 38
-    factor_prime     go to state 39
-
-
-State 170
-
-   63 job_params: job_param_job_id job_param_flops_required . job_param_deadline job_param_mem_required job_param_affinity
-
-    COMMA  shift, and go to state 209
-
-    job_param_deadline  go to state 210
-
-
-State 171
-
-  106 cluster_param_processors: K_PROCESSORS ASSIGN . array_id
-  107                         | K_PROCESSORS ASSIGN . ID
-
-    ID  shift, and go to state 211
-    LS  shift, and go to state 47
-
-    array_id  go to state 212
-
-
-State 172
-
-   55 constructors: K_CLUSTER LP cluster_params RP .
-
-    $default  reduce using rule 55 (constructors)
-
-
-State 173
-
-  108 cluster_param_topology: COMMA . K_TOPOLOGY ASSIGN STRING
-
-    K_TOPOLOGY  shift, and go to state 213
-
-
-State 174
-
-   64 cluster_params: cluster_param_processors cluster_param_topology . cluster_param_link_bandwidth cluster_param_link_capacity cluster_param_name
-
-    COMMA  shift, and go to state 214
-
-    cluster_param_link_bandwidth  go to state 215
-
-
-State 175
-
-  115 scheduler_param_jobs: K_JOBS ASSIGN . array_id
-  116                     | K_JOBS ASSIGN . ID
-
-    ID  shift, and go to state 216
-    LS  shift, and go to state 47
-
-    array_id  go to state 217
-
-
-State 176
-
-   56 constructors: K_SCHEDULER LP scheduler_params RP .
-
-    $default  reduce using rule 56 (constructors)
-
-
-State 177
-
-  117 scheduler_param_processors: COMMA . K_PROCESSORS ASSIGN array_id
-  118                           | COMMA . K_PROCESSORS ASSIGN ID
-
-    K_PROCESSORS  shift, and go to state 218
-
-
-State 178
-
-   65 scheduler_params: scheduler_param_jobs scheduler_param_processors . scheduler_param_algo
-
-    COMMA  shift, and go to state 219
-
-    scheduler_param_algo  go to state 220
-
-
-State 179
-
-   11 function_call_1: K_SUBMIT_JOBS LP ID RP .
-
-    $default  reduce using rule 11 (function_call_1)
-
-
-State 180
-
-   12 function_call_1: K_SUBMIT_JOBS LP array_id RP .
-
-    $default  reduce using rule 12 (function_call_1)
-
-
-State 181
-
-    4 statement: K_IF LP bool_returning_statements RP LB statements RB . K_ELSE LB statements RB
-
-    K_ELSE  shift, and go to state 221
-
-
-State 182
-
-    5 statement: K_WHILE LP bool_returning_statements RP LB statements RB .
-
-    $default  reduce using rule 5 (statement)
-
-
-State 183
-
-    7 statement: K_FOR LP assign_statements SEMI bool_returning_statements SEMI assign_statements . RP LB statements RB
-
-    RP  shift, and go to state 222
-
-
-State 184
-
-  128 array_id_items: COMMA ID array_id_items .
-
-    $default  reduce using rule 128 (array_id_items)
-
-
-State 185
-
-   67 ISA_values: K_ARM .
-
-    $default  reduce using rule 67 (ISA_values)
-
-
-State 186
-
-   68 ISA_values: K_AMD .
-
-    $default  reduce using rule 68 (ISA_values)
-
-
-State 187
-
-   69 ISA_values: K_CDC .
-
-    $default  reduce using rule 69 (ISA_values)
-
-
-State 188
-
-   70 ISA_values: K_MIPS .
-
-    $default  reduce using rule 70 (ISA_values)
-
-
-State 189
-
-   66 processor_param_isa: K_ISA ASSIGN ISA_values .
-
-    $default  reduce using rule 66 (processor_param_isa)
-
-
-State 190
-
-   71 processor_param_clock_speed: COMMA K_CLOCK_SPEED . COLON expression
-
-    COLON  shift, and go to state 223
-
-
-State 191
-
-   72 processor_param_l1_memory: COMMA . K_L1_MEMORY ASSIGN ID
-   73                          | COMMA . K_L1_MEMORY ASSIGN K_MEMORY LP memory_params RP
-
-    K_L1_MEMORY  shift, and go to state 224
-
-
-State 192
-
-   57 processor_params: processor_param_isa processor_param_clock_speed processor_param_l1_memory .
-   58                 | processor_param_isa processor_param_clock_speed processor_param_l1_memory . COMMA processor_param_l2_memory COMMA processor_param_name
-   59                 | processor_param_isa processor_param_clock_speed processor_param_l1_memory . COMMA processor_param_l2_memory
-   60                 | processor_param_isa processor_param_clock_speed processor_param_l1_memory . COMMA processor_param_name
-
-    COMMA  shift, and go to state 225
-
-    $default  reduce using rule 57 (processor_params)
-
-
-State 193
-
-   78 link_param_start_point: K_START_POINT ASSIGN ID .
-
-    $default  reduce using rule 78 (link_param_start_point)
-
-
-State 194
-
-   77 link_param_start_point: K_START_POINT ASSIGN STRING .
-
-    $default  reduce using rule 77 (link_param_start_point)
-
-
-State 195
-
-   79 link_param_end_point: COMMA K_END_POINT . ASSIGN STRING
-   80                     | COMMA K_END_POINT . ASSIGN ID
-
-    ASSIGN  shift, and go to state 226
-
-
-State 196
-
-   81 link_param_bandwidth: COMMA . K_BANDWIDTH ASSIGN expression
-   82                     | COMMA . expression
-
-    K_RUN          shift, and go to state 5
-    K_DISCARD_JOB  shift, and go to state 6
-    K_BANDWIDTH    shift, and go to state 227
-    ID             shift, and go to state 26
-    INT            shift, and go to state 27
-    FLOAT          shift, and go to state 28
-    LP             shift, and go to state 29
-    STRING         shift, and go to state 30
-    K_WAIT         shift, and go to state 8
-
-    function_call_2  go to state 32
-    expression       go to state 228
-    term_prime       go to state 36
-    term             go to state 37
-    factor           go to state 38
-    factor_prime     go to state 39
-
-
-State 197
-
-   61 link_params: link_param_start_point link_param_end_point link_param_bandwidth . link_param_channel_capacity link_param_name
-
-    COMMA  shift, and go to state 229
-
-    link_param_channel_capacity  go to state 230
-
-
-State 198
-
-   93 memory_type_values: K_PRIMARY .
-
-    $default  reduce using rule 93 (memory_type_values)
-
-
-State 199
-
-   94 memory_type_values: K_SECONDARY .
-
-    $default  reduce using rule 94 (memory_type_values)
-
-
-State 200
-
-   95 memory_type_values: K_CACHE .
-
-    $default  reduce using rule 95 (memory_type_values)
-
-
-State 201
-
-   88 memory_param_memory_type: K_MEMORY_TYPE ASSIGN memory_type_values .
-
-    $default  reduce using rule 88 (memory_param_memory_type)
-
-
-State 202
-
-   89 memory_param_mem_size: COMMA K_MEM_SIZE . ASSIGN expression
-
-    ASSIGN  shift, and go to state 231
-
-
-State 203
-
-   90 memory_param_name: COMMA . K_NAME ASSIGN STRING
-   91                  | COMMA . K_NAME ASSIGN ID
-
-    K_NAME  shift, and go to state 232
-
-
-State 204
-
-   62 memory_params: memory_param_memory_type memory_param_mem_size memory_param_name .
-
-    $default  reduce using rule 62 (memory_params)
-
-
-State 205
-
-   92 memory_param_name: epsilon .
-
-    $default  reduce using rule 92 (memory_param_name)
-
-
-State 206
-
-   96 job_param_job_id: K_JOB_ID ASSIGN expression .
-
-    $default  reduce using rule 96 (job_param_job_id)
-
-
-State 207
-
-   98 job_param_flops_required: COMMA K_FLOPS_REQUIRED . ASSIGN expression
-
-    ASSIGN  shift, and go to state 233
-
-
-State 208
-
-   99 job_param_flops_required: COMMA expression .
-
-    $default  reduce using rule 99 (job_param_flops_required)
-
-
-State 209
-
-  100 job_param_deadline: COMMA . K_DEADLINE ASSIGN expression
-  101                   | COMMA . expression
-
-    K_RUN          shift, and go to state 5
-    K_DISCARD_JOB  shift, and go to state 6
-    K_DEADLINE     shift, and go to state 234
-    ID             shift, and go to state 26
-    INT            shift, and go to state 27
-    FLOAT          shift, and go to state 28
-    LP             shift, and go to state 29
-    STRING         shift, and go to state 30
-    K_WAIT         shift, and go to state 8
-
-    function_call_2  go to state 32
-    expression       go to state 235
-    term_prime       go to state 36
-    term             go to state 37
-    factor           go to state 38
-    factor_prime     go to state 39
-
-
-State 210
-
-   63 job_params: job_param_job_id job_param_flops_required job_param_deadline . job_param_mem_required job_param_affinity
-
-    COMMA  shift, and go to state 236
-
-    job_param_mem_required  go to state 237
-
-
-State 211
-
-  107 cluster_param_processors: K_PROCESSORS ASSIGN ID .
-
-    $default  reduce using rule 107 (cluster_param_processors)
-
-
-State 212
-
-  106 cluster_param_processors: K_PROCESSORS ASSIGN array_id .
-
-    $default  reduce using rule 106 (cluster_param_processors)
-
-
-State 213
-
-  108 cluster_param_topology: COMMA K_TOPOLOGY . ASSIGN STRING
-
-    ASSIGN  shift, and go to state 238
-
-
-State 214
-
-  109 cluster_param_link_bandwidth: COMMA . K_LINK_BANDWIDTH ASSIGN expression
-  110                             | COMMA . expression
-
-    K_RUN             shift, and go to state 5
-    K_DISCARD_JOB     shift, and go to state 6
-    K_LINK_BANDWIDTH  shift, and go to state 239
-    ID                shift, and go to state 26
-    INT               shift, and go to state 27
-    FLOAT             shift, and go to state 28
-    LP                shift, and go to state 29
-    STRING            shift, and go to state 30
-    K_WAIT            shift, and go to state 8
-
-    function_call_2  go to state 32
-    expression       go to state 240
-    term_prime       go to state 36
-    term             go to state 37
-    factor           go to state 38
-    factor_prime     go to state 39
-
-
-State 215
-
-   64 cluster_params: cluster_param_processors cluster_param_topology cluster_param_link_bandwidth . cluster_param_link_capacity cluster_param_name
-
-    COMMA  shift, and go to state 241
-
-    cluster_param_link_capacity  go to state 242
-
-
-State 216
-
-  116 scheduler_param_jobs: K_JOBS ASSIGN ID .
-
-    $default  reduce using rule 116 (scheduler_param_jobs)
-
-
-State 217
-
-  115 scheduler_param_jobs: K_JOBS ASSIGN array_id .
-
-    $default  reduce using rule 115 (scheduler_param_jobs)
-
-
-State 218
-
-  117 scheduler_param_processors: COMMA K_PROCESSORS . ASSIGN array_id
-  118                           | COMMA K_PROCESSORS . ASSIGN ID
-
-    ASSIGN  shift, and go to state 243
-
-
-State 219
-
-  119 scheduler_param_algo: COMMA . K_ALGO ASSIGN algo_type_values
-
-    K_ALGO  shift, and go to state 244
-
-
-State 220
-
-   65 scheduler_params: scheduler_param_jobs scheduler_param_processors scheduler_param_algo .
-
-    $default  reduce using rule 65 (scheduler_params)
-
-
-State 221
-
-    4 statement: K_IF LP bool_returning_statements RP LB statements RB K_ELSE . LB statements RB
-
-    LB  shift, and go to state 245
-
-
-State 222
-
-    7 statement: K_FOR LP assign_statements SEMI bool_returning_statements SEMI assign_statements RP . LB statements RB
-
-    LB  shift, and go to state 246
-
-
-State 223
-
-   71 processor_param_clock_speed: COMMA K_CLOCK_SPEED COLON . expression
-
-    K_RUN          shift, and go to state 5
-    K_DISCARD_JOB  shift, and go to state 6
-    ID             shift, and go to state 26
-    INT            shift, and go to state 27
-    FLOAT          shift, and go to state 28
-    LP             shift, and go to state 29
-    STRING         shift, and go to state 30
-    K_WAIT         shift, and go to state 8
-
-    function_call_2  go to state 32
-    expression       go to state 247
-    term_prime       go to state 36
-    term             go to state 37
-    factor           go to state 38
-    factor_prime     go to state 39
-
-
-State 224
-
-   72 processor_param_l1_memory: COMMA K_L1_MEMORY . ASSIGN ID
-   73                          | COMMA K_L1_MEMORY . ASSIGN K_MEMORY LP memory_params RP
-
-    ASSIGN  shift, and go to state 248
-
-
-State 225
-
-   58 processor_params: processor_param_isa processor_param_clock_speed processor_param_l1_memory COMMA . processor_param_l2_memory COMMA processor_param_name
-   59                 | processor_param_isa processor_param_clock_speed processor_param_l1_memory COMMA . processor_param_l2_memory
-   60                 | processor_param_isa processor_param_clock_speed processor_param_l1_memory COMMA . processor_param_name
-
-    K_L2_MEMORY  shift, and go to state 249
-    K_NAME       shift, and go to state 250
-
-    processor_param_l2_memory  go to state 251
-    processor_param_name       go to state 252
-
-
-State 226
-
-   79 link_param_end_point: COMMA K_END_POINT ASSIGN . STRING
-   80                     | COMMA K_END_POINT ASSIGN . ID
-
-    ID      shift, and go to state 253
-    STRING  shift, and go to state 254
-
-
-State 227
-
-   81 link_param_bandwidth: COMMA K_BANDWIDTH . ASSIGN expression
-
-    ASSIGN  shift, and go to state 255
-
-
-State 228
-
-   82 link_param_bandwidth: COMMA expression .
-
-    $default  reduce using rule 82 (link_param_bandwidth)
-
-
-State 229
-
-   83 link_param_channel_capacity: COMMA . K_CHANNEL_CAPACITY ASSIGN expression
-   84                            | COMMA . expression
-
-    K_RUN               shift, and go to state 5
-    K_DISCARD_JOB       shift, and go to state 6
-    K_CHANNEL_CAPACITY  shift, and go to state 256
-    ID                  shift, and go to state 26
-    INT                 shift, and go to state 27
-    FLOAT               shift, and go to state 28
-    LP                  shift, and go to state 29
-    STRING              shift, and go to state 30
-    K_WAIT              shift, and go to state 8
-
-    function_call_2  go to state 32
-    expression       go to state 257
-    term_prime       go to state 36
-    term             go to state 37
-    factor           go to state 38
-    factor_prime     go to state 39
-
-
-State 230
-
-   61 link_params: link_param_start_point link_param_end_point link_param_bandwidth link_param_channel_capacity . link_param_name
-
-    COMMA  shift, and go to state 258
-
-    $default  reduce using rule 130 (epsilon)
-
-    link_param_name  go to state 259
-    epsilon          go to state 260
-
-
-State 231
-
-   89 memory_param_mem_size: COMMA K_MEM_SIZE ASSIGN . expression
-
-    K_RUN          shift, and go to state 5
-    K_DISCARD_JOB  shift, and go to state 6
-    ID             shift, and go to state 26
-    INT            shift, and go to state 27
-    FLOAT          shift, and go to state 28
-    LP             shift, and go to state 29
-    STRING         shift, and go to state 30
-    K_WAIT         shift, and go to state 8
-
-    function_call_2  go to state 32
-    expression       go to state 261
-    term_prime       go to state 36
-    term             go to state 37
-    factor           go to state 38
-    factor_prime     go to state 39
-
-
-State 232
-
-   90 memory_param_name: COMMA K_NAME . ASSIGN STRING
-   91                  | COMMA K_NAME . ASSIGN ID
-
-    ASSIGN  shift, and go to state 262
-
-
-State 233
-
-   98 job_param_flops_required: COMMA K_FLOPS_REQUIRED ASSIGN . expression
-
-    K_RUN          shift, and go to state 5
-    K_DISCARD_JOB  shift, and go to state 6
-    ID             shift, and go to state 26
-    INT            shift, and go to state 27
-    FLOAT          shift, and go to state 28
-    LP             shift, and go to state 29
-    STRING         shift, and go to state 30
-    K_WAIT         shift, and go to state 8
-
-    function_call_2  go to state 32
-    expression       go to state 263
-    term_prime       go to state 36
-    term             go to state 37
-    factor           go to state 38
-    factor_prime     go to state 39
-
-
-State 234
-
-  100 job_param_deadline: COMMA K_DEADLINE . ASSIGN expression
-
-    ASSIGN  shift, and go to state 264
-
-
-State 235
-
-  101 job_param_deadline: COMMA expression .
-
-    $default  reduce using rule 101 (job_param_deadline)
-
-
-State 236
-
-  102 job_param_mem_required: COMMA . K_MEM_REQUIRED ASSIGN expression
-  103                       | COMMA . expression
-
-    K_RUN           shift, and go to state 5
-    K_DISCARD_JOB   shift, and go to state 6
-    K_MEM_REQUIRED  shift, and go to state 265
-    ID              shift, and go to state 26
-    INT             shift, and go to state 27
-    FLOAT           shift, and go to state 28
-    LP              shift, and go to state 29
-    STRING          shift, and go to state 30
-    K_WAIT          shift, and go to state 8
-
-    function_call_2  go to state 32
-    expression       go to state 266
-    term_prime       go to state 36
-    term             go to state 37
-    factor           go to state 38
-    factor_prime     go to state 39
-
-
-State 237
-
-   63 job_params: job_param_job_id job_param_flops_required job_param_deadline job_param_mem_required . job_param_affinity
-
-    COMMA  shift, and go to state 267
-
-    job_param_affinity  go to state 268
-
-
-State 238
-
-  108 cluster_param_topology: COMMA K_TOPOLOGY ASSIGN . STRING
-
-    STRING  shift, and go to state 269
-
-
-State 239
-
-  109 cluster_param_link_bandwidth: COMMA K_LINK_BANDWIDTH . ASSIGN expression
-
-    ASSIGN  shift, and go to state 270
-
-
-State 240
-
-  110 cluster_param_link_bandwidth: COMMA expression .
-
-    $default  reduce using rule 110 (cluster_param_link_bandwidth)
-
-
-State 241
-
-  111 cluster_param_link_capacity: COMMA . K_LINK_CAPACITY ASSIGN expression
-  112                            | COMMA . expression
-
-    K_RUN            shift, and go to state 5
-    K_DISCARD_JOB    shift, and go to state 6
-    K_LINK_CAPACITY  shift, and go to state 271
-    ID               shift, and go to state 26
-    INT              shift, and go to state 27
-    FLOAT            shift, and go to state 28
-    LP               shift, and go to state 29
-    STRING           shift, and go to state 30
-    K_WAIT           shift, and go to state 8
-
-    function_call_2  go to state 32
-    expression       go to state 272
-    term_prime       go to state 36
-    term             go to state 37
-    factor           go to state 38
-    factor_prime     go to state 39
-
-
-State 242
-
-   64 cluster_params: cluster_param_processors cluster_param_topology cluster_param_link_bandwidth cluster_param_link_capacity . cluster_param_name
-
-    COMMA  shift, and go to state 273
-
-    $default  reduce using rule 130 (epsilon)
-
-    cluster_param_name  go to state 274
-    epsilon             go to state 275
-
-
-State 243
-
-  117 scheduler_param_processors: COMMA K_PROCESSORS ASSIGN . array_id
-  118                           | COMMA K_PROCESSORS ASSIGN . ID
-
-    ID  shift, and go to state 276
-    LS  shift, and go to state 47
-
-    array_id  go to state 277
-
-
-State 244
-
-  119 scheduler_param_algo: COMMA K_ALGO . ASSIGN algo_type_values
-
-    ASSIGN  shift, and go to state 278
-
-
-State 245
-
-    4 statement: K_IF LP bool_returning_statements RP LB statements RB K_ELSE LB . statements RB
-
-    K_IF           shift, and go to state 1
-    K_WHILE        shift, and go to state 2
-    K_FOR          shift, and go to state 3
-    K_BEGIN        shift, and go to state 4
-    K_RUN          shift, and go to state 5
-    K_DISCARD_JOB  shift, and go to state 6
-    ID             shift, and go to state 7
-    K_WAIT         shift, and go to state 8
-
-    $default  reduce using rule 130 (epsilon)
-
-    statements        go to state 279
-    statement         go to state 10
-    function_call_2   go to state 11
-    assign_statement  go to state 12
-    epsilon           go to state 13
-
-
-State 246
-
-    7 statement: K_FOR LP assign_statements SEMI bool_returning_statements SEMI assign_statements RP LB . statements RB
-
-    K_IF           shift, and go to state 1
-    K_WHILE        shift, and go to state 2
-    K_FOR          shift, and go to state 3
-    K_BEGIN        shift, and go to state 4
-    K_RUN          shift, and go to state 5
-    K_DISCARD_JOB  shift, and go to state 6
-    ID             shift, and go to state 7
-    K_WAIT         shift, and go to state 8
-
-    $default  reduce using rule 130 (epsilon)
-
-    statements        go to state 280
-    statement         go to state 10
-    function_call_2   go to state 11
-    assign_statement  go to state 12
-    epsilon           go to state 13
-
-
-State 247
-
-   71 processor_param_clock_speed: COMMA K_CLOCK_SPEED COLON expression .
-
-    $default  reduce using rule 71 (processor_param_clock_speed)
-
-
-State 248
-
-   72 processor_param_l1_memory: COMMA K_L1_MEMORY ASSIGN . ID
-   73                          | COMMA K_L1_MEMORY ASSIGN . K_MEMORY LP memory_params RP
-
-    K_MEMORY  shift, and go to state 281
-    ID        shift, and go to state 282
-
-
-State 249
-
-   74 processor_param_l2_memory: K_L2_MEMORY . ASSIGN ID
-   75                          | K_L2_MEMORY . ASSIGN K_MEMORY LP memory_params RP
-
-    ASSIGN  shift, and go to state 283
-
-
-State 250
-
-   76 processor_param_name: K_NAME . ASSIGN STRING
-
-    ASSIGN  shift, and go to state 284
-
-
-State 251
-
-   58 processor_params: processor_param_isa processor_param_clock_speed processor_param_l1_memory COMMA processor_param_l2_memory . COMMA processor_param_name
-   59                 | processor_param_isa processor_param_clock_speed processor_param_l1_memory COMMA processor_param_l2_memory .
-
-    COMMA  shift, and go to state 285
-
-    $default  reduce using rule 59 (processor_params)
-
-
-State 252
-
-   60 processor_params: processor_param_isa processor_param_clock_speed processor_param_l1_memory COMMA processor_param_name .
-
-    $default  reduce using rule 60 (processor_params)
-
-
-State 253
-
-   80 link_param_end_point: COMMA K_END_POINT ASSIGN ID .
-
-    $default  reduce using rule 80 (link_param_end_point)
-
-
-State 254
-
-   79 link_param_end_point: COMMA K_END_POINT ASSIGN STRING .
-
-    $default  reduce using rule 79 (link_param_end_point)
-
-
-State 255
-
-   81 link_param_bandwidth: COMMA K_BANDWIDTH ASSIGN . expression
-
-    K_RUN          shift, and go to state 5
-    K_DISCARD_JOB  shift, and go to state 6
-    ID             shift, and go to state 26
-    INT            shift, and go to state 27
-    FLOAT          shift, and go to state 28
-    LP             shift, and go to state 29
-    STRING         shift, and go to state 30
-    K_WAIT         shift, and go to state 8
-
-    function_call_2  go to state 32
-    expression       go to state 286
-    term_prime       go to state 36
-    term             go to state 37
-    factor           go to state 38
-    factor_prime     go to state 39
-
-
-State 256
-
-   83 link_param_channel_capacity: COMMA K_CHANNEL_CAPACITY . ASSIGN expression
-
-    ASSIGN  shift, and go to state 287
-
-
-State 257
-
-   84 link_param_channel_capacity: COMMA expression .
-
-    $default  reduce using rule 84 (link_param_channel_capacity)
-
-
-State 258
-
-   85 link_param_name: COMMA . K_NAME ASSIGN STRING
-   86                | COMMA . K_NAME ASSIGN ID
-
-    K_NAME  shift, and go to state 288
-
-
-State 259
-
-   61 link_params: link_param_start_point link_param_end_point link_param_bandwidth link_param_channel_capacity link_param_name .
-
-    $default  reduce using rule 61 (link_params)
-
-
-State 260
-
-   87 link_param_name: epsilon .
-
-    $default  reduce using rule 87 (link_param_name)
-
-
-State 261
-
-   89 memory_param_mem_size: COMMA K_MEM_SIZE ASSIGN expression .
-
-    $default  reduce using rule 89 (memory_param_mem_size)
-
-
-State 262
-
-   90 memory_param_name: COMMA K_NAME ASSIGN . STRING
-   91                  | COMMA K_NAME ASSIGN . ID
-
-    ID      shift, and go to state 289
-    STRING  shift, and go to state 290
-
-
-State 263
-
-   98 job_param_flops_required: COMMA K_FLOPS_REQUIRED ASSIGN expression .
-
-    $default  reduce using rule 98 (job_param_flops_required)
-
-
-State 264
-
-  100 job_param_deadline: COMMA K_DEADLINE ASSIGN . expression
-
-    K_RUN          shift, and go to state 5
-    K_DISCARD_JOB  shift, and go to state 6
-    ID             shift, and go to state 26
-    INT            shift, and go to state 27
-    FLOAT          shift, and go to state 28
-    LP             shift, and go to state 29
-    STRING         shift, and go to state 30
-    K_WAIT         shift, and go to state 8
-
-    function_call_2  go to state 32
-    expression       go to state 291
-    term_prime       go to state 36
-    term             go to state 37
-    factor           go to state 38
-    factor_prime     go to state 39
-
-
-State 265
-
-  102 job_param_mem_required: COMMA K_MEM_REQUIRED . ASSIGN expression
-
-    ASSIGN  shift, and go to state 292
-
-
-State 266
-
-  103 job_param_mem_required: COMMA expression .
-
-    $default  reduce using rule 103 (job_param_mem_required)
-
-
-State 267
-
-  104 job_param_affinity: COMMA . K_AFFINITY ASSIGN array_num
-  105                   | COMMA . K_AFFINITY ASSIGN ID
-
-    K_AFFINITY  shift, and go to state 293
-
-
-State 268
-
-   63 job_params: job_param_job_id job_param_flops_required job_param_deadline job_param_mem_required job_param_affinity .
-
-    $default  reduce using rule 63 (job_params)
-
-
-State 269
-
-  108 cluster_param_topology: COMMA K_TOPOLOGY ASSIGN STRING .
-
-    $default  reduce using rule 108 (cluster_param_topology)
-
-
-State 270
-
-  109 cluster_param_link_bandwidth: COMMA K_LINK_BANDWIDTH ASSIGN . expression
-
-    K_RUN          shift, and go to state 5
-    K_DISCARD_JOB  shift, and go to state 6
-    ID             shift, and go to state 26
-    INT            shift, and go to state 27
-    FLOAT          shift, and go to state 28
-    LP             shift, and go to state 29
-    STRING         shift, and go to state 30
-    K_WAIT         shift, and go to state 8
-
-    function_call_2  go to state 32
-    expression       go to state 294
-    term_prime       go to state 36
-    term             go to state 37
-    factor           go to state 38
-    factor_prime     go to state 39
-
-
-State 271
-
-  111 cluster_param_link_capacity: COMMA K_LINK_CAPACITY . ASSIGN expression
-
-    ASSIGN  shift, and go to state 295
-
-
-State 272
-
-  112 cluster_param_link_capacity: COMMA expression .
-
-    $default  reduce using rule 112 (cluster_param_link_capacity)
-
-
-State 273
-
-  113 cluster_param_name: COMMA . K_NAME ASSIGN STRING
-
-    K_NAME  shift, and go to state 296
-
-
-State 274
-
-   64 cluster_params: cluster_param_processors cluster_param_topology cluster_param_link_bandwidth cluster_param_link_capacity cluster_param_name .
-
-    $default  reduce using rule 64 (cluster_params)
-
-
-State 275
-
-  114 cluster_param_name: epsilon .
-
-    $default  reduce using rule 114 (cluster_param_name)
-
-
-State 276
-
-  118 scheduler_param_processors: COMMA K_PROCESSORS ASSIGN ID .
-
-    $default  reduce using rule 118 (scheduler_param_processors)
-
-
-State 277
-
-  117 scheduler_param_processors: COMMA K_PROCESSORS ASSIGN array_id .
-
-    $default  reduce using rule 117 (scheduler_param_processors)
-
-
-State 278
-
-  119 scheduler_param_algo: COMMA K_ALGO ASSIGN . algo_type_values
-
-    K_FCFS  shift, and go to state 297
-    K_SJN   shift, and go to state 298
-    K_SRT   shift, and go to state 299
-    K_RRS   shift, and go to state 300
-
-    algo_type_values  go to state 301
-
-
-State 279
-
-    4 statement: K_IF LP bool_returning_statements RP LB statements RB K_ELSE LB statements . RB
-
-    RB  shift, and go to state 302
-
-
-State 280
-
-    7 statement: K_FOR LP assign_statements SEMI bool_returning_statements SEMI assign_statements RP LB statements . RB
-
-    RB  shift, and go to state 303
-
-
-State 281
-
-   73 processor_param_l1_memory: COMMA K_L1_MEMORY ASSIGN K_MEMORY . LP memory_params RP
-
-    LP  shift, and go to state 304
-
-
-State 282
-
-   72 processor_param_l1_memory: COMMA K_L1_MEMORY ASSIGN ID .
-
-    $default  reduce using rule 72 (processor_param_l1_memory)
-
-
-State 283
-
-   74 processor_param_l2_memory: K_L2_MEMORY ASSIGN . ID
-   75                          | K_L2_MEMORY ASSIGN . K_MEMORY LP memory_params RP
-
-    K_MEMORY  shift, and go to state 305
-    ID        shift, and go to state 306
-
-
-State 284
-
-   76 processor_param_name: K_NAME ASSIGN . STRING
-
-    STRING  shift, and go to state 307
-
-
-State 285
-
-   58 processor_params: processor_param_isa processor_param_clock_speed processor_param_l1_memory COMMA processor_param_l2_memory COMMA . processor_param_name
-
-    K_NAME  shift, and go to state 250
-
-    processor_param_name  go to state 308
-
-
-State 286
-
-   81 link_param_bandwidth: COMMA K_BANDWIDTH ASSIGN expression .
-
-    $default  reduce using rule 81 (link_param_bandwidth)
-
-
-State 287
-
-   83 link_param_channel_capacity: COMMA K_CHANNEL_CAPACITY ASSIGN . expression
-
-    K_RUN          shift, and go to state 5
-    K_DISCARD_JOB  shift, and go to state 6
-    ID             shift, and go to state 26
-    INT            shift, and go to state 27
-    FLOAT          shift, and go to state 28
-    LP             shift, and go to state 29
-    STRING         shift, and go to state 30
-    K_WAIT         shift, and go to state 8
-
-    function_call_2  go to state 32
-    expression       go to state 309
-    term_prime       go to state 36
-    term             go to state 37
-    factor           go to state 38
-    factor_prime     go to state 39
-
-
-State 288
-
-   85 link_param_name: COMMA K_NAME . ASSIGN STRING
-   86                | COMMA K_NAME . ASSIGN ID
-
-    ASSIGN  shift, and go to state 310
-
-
-State 289
-
-   91 memory_param_name: COMMA K_NAME ASSIGN ID .
-
-    $default  reduce using rule 91 (memory_param_name)
-
-
-State 290
-
-   90 memory_param_name: COMMA K_NAME ASSIGN STRING .
-
-    $default  reduce using rule 90 (memory_param_name)
-
-
-State 291
-
-  100 job_param_deadline: COMMA K_DEADLINE ASSIGN expression .
-
-    $default  reduce using rule 100 (job_param_deadline)
-
-
-State 292
-
-  102 job_param_mem_required: COMMA K_MEM_REQUIRED ASSIGN . expression
-
-    K_RUN          shift, and go to state 5
-    K_DISCARD_JOB  shift, and go to state 6
-    ID             shift, and go to state 26
-    INT            shift, and go to state 27
-    FLOAT          shift, and go to state 28
-    LP             shift, and go to state 29
-    STRING         shift, and go to state 30
-    K_WAIT         shift, and go to state 8
-
-    function_call_2  go to state 32
-    expression       go to state 311
-    term_prime       go to state 36
-    term             go to state 37
-    factor           go to state 38
-    factor_prime     go to state 39
-
-
-State 293
-
-  104 job_param_affinity: COMMA K_AFFINITY . ASSIGN array_num
-  105                   | COMMA K_AFFINITY . ASSIGN ID
-
-    ASSIGN  shift, and go to state 312
-
-
-State 294
-
-  109 cluster_param_link_bandwidth: COMMA K_LINK_BANDWIDTH ASSIGN expression .
-
-    $default  reduce using rule 109 (cluster_param_link_bandwidth)
-
-
-State 295
-
-  111 cluster_param_link_capacity: COMMA K_LINK_CAPACITY ASSIGN . expression
-
-    K_RUN          shift, and go to state 5
-    K_DISCARD_JOB  shift, and go to state 6
-    ID             shift, and go to state 26
-    INT            shift, and go to state 27
-    FLOAT          shift, and go to state 28
-    LP             shift, and go to state 29
-    STRING         shift, and go to state 30
-    K_WAIT         shift, and go to state 8
-
-    function_call_2  go to state 32
-    expression       go to state 313
-    term_prime       go to state 36
-    term             go to state 37
-    factor           go to state 38
-    factor_prime     go to state 39
-
-
-State 296
-
-  113 cluster_param_name: COMMA K_NAME . ASSIGN STRING
-
-    ASSIGN  shift, and go to state 314
-
-
-State 297
-
-  120 algo_type_values: K_FCFS .
-
-    $default  reduce using rule 120 (algo_type_values)
-
-
-State 298
-
-  121 algo_type_values: K_SJN .
-
-    $default  reduce using rule 121 (algo_type_values)
-
-
-State 299
-
-  122 algo_type_values: K_SRT .
-
-    $default  reduce using rule 122 (algo_type_values)
-
-
-State 300
-
-  123 algo_type_values: K_RRS .
-
-    $default  reduce using rule 123 (algo_type_values)
-
-
-State 301
-
-  119 scheduler_param_algo: COMMA K_ALGO ASSIGN algo_type_values .
-
-    $default  reduce using rule 119 (scheduler_param_algo)
-
-
-State 302
-
-    4 statement: K_IF LP bool_returning_statements RP LB statements RB K_ELSE LB statements RB .
+    4 statement: K_IF_EXP BLOCK_BODY K_ELSE BLOCK_BODY .
 
     $default  reduce using rule 4 (statement)
 
 
-State 303
+State 107
 
-    7 statement: K_FOR LP assign_statements SEMI bool_returning_statements SEMI assign_statements RP LB statements RB .
+   23 DIM1: LS ID RS .
 
-    $default  reduce using rule 7 (statement)
+    $default  reduce using rule 23 (DIM1)
 
 
-State 304
+State 108
 
-   73 processor_param_l1_memory: COMMA K_L1_MEMORY ASSIGN K_MEMORY LP . memory_params RP
+   22 DIM1: LS INT RS .
 
-    K_MEMORY_TYPE  shift, and go to state 125
+    $default  reduce using rule 22 (DIM1)
 
-    memory_params             go to state 315
-    memory_param_memory_type  go to state 127
 
+State 109
 
-State 305
+   15 DList: IDEXP COMMA DList .
 
-   75 processor_param_l2_memory: K_L2_MEMORY ASSIGN K_MEMORY . LP memory_params RP
+    $default  reduce using rule 15 (DList)
 
-    LP  shift, and go to state 316
 
+State 110
 
-State 306
+   59 factor_prime: ID DOT function_call_1 .
 
-   74 processor_param_l2_memory: K_L2_MEMORY ASSIGN ID .
+    $default  reduce using rule 59 (factor_prime)
 
-    $default  reduce using rule 74 (processor_param_l2_memory)
 
+State 111
 
-State 307
+   60 factor_prime: LP expression RP .
 
-   76 processor_param_name: K_NAME ASSIGN STRING .
+    $default  reduce using rule 60 (factor_prime)
 
-    $default  reduce using rule 76 (processor_param_name)
 
+State 112
 
-State 308
+   40 bool_returning_statements: bool_returning_statement L_AND bool_returning_statements .
 
-   58 processor_params: processor_param_isa processor_param_clock_speed processor_param_l1_memory COMMA processor_param_l2_memory COMMA processor_param_name .
+    $default  reduce using rule 40 (bool_returning_statements)
 
-    $default  reduce using rule 58 (processor_params)
 
+State 113
 
-State 309
+   41 bool_returning_statements: bool_returning_statement L_OR bool_returning_statements .
 
-   83 link_param_channel_capacity: COMMA K_CHANNEL_CAPACITY ASSIGN expression .
+    $default  reduce using rule 41 (bool_returning_statements)
 
-    $default  reduce using rule 83 (link_param_channel_capacity)
 
+State 114
 
-State 310
+   49 expression: term_prime RELOPEXP expression .
 
-   85 link_param_name: COMMA K_NAME ASSIGN . STRING
-   86                | COMMA K_NAME ASSIGN . ID
+    $default  reduce using rule 49 (expression)
 
-    ID      shift, and go to state 317
-    STRING  shift, and go to state 318
 
+State 115
 
-State 311
+   52 term_prime: term PLUS term_prime .
 
-  102 job_param_mem_required: COMMA K_MEM_REQUIRED ASSIGN expression .
+    $default  reduce using rule 52 (term_prime)
 
-    $default  reduce using rule 102 (job_param_mem_required)
 
+State 116
 
-State 312
+   53 term_prime: term MINUS term_prime .
 
-  104 job_param_affinity: COMMA K_AFFINITY ASSIGN . array_num
-  105                   | COMMA K_AFFINITY ASSIGN . ID
+    $default  reduce using rule 53 (term_prime)
 
-    ID  shift, and go to state 319
-    LS  shift, and go to state 320
 
-    array_num  go to state 321
+State 117
 
+   55 term: factor MULT term .
 
-State 313
+    $default  reduce using rule 55 (term)
 
-  111 cluster_param_link_capacity: COMMA K_LINK_CAPACITY ASSIGN expression .
 
-    $default  reduce using rule 111 (cluster_param_link_capacity)
+State 118
 
+   56 term: factor DIV term .
 
-State 314
+    $default  reduce using rule 56 (term)
 
-  113 cluster_param_name: COMMA K_NAME ASSIGN . STRING
 
-    STRING  shift, and go to state 322
+State 119
 
+   13 K_FOR_EXP: K_FOR LP assign_statements SEMI bool_returning_statements . SEMI assign_statements RP
 
-State 315
+    SEMI  shift, and go to state 126
 
-   73 processor_param_l1_memory: COMMA K_L1_MEMORY ASSIGN K_MEMORY LP memory_params . RP
 
-    RP  shift, and go to state 323
+State 120
 
+   45 assign_statements: assign_statement COMMA assign_statements .
 
-State 316
+    $default  reduce using rule 45 (assign_statements)
 
-   75 processor_param_l2_memory: K_L2_MEMORY ASSIGN K_MEMORY LP . memory_params RP
 
-    K_MEMORY_TYPE  shift, and go to state 125
+State 121
 
-    memory_params             go to state 324
-    memory_param_memory_type  go to state 127
+   33 function_call_1: K_IS_RUNNING LP RP .
 
+    $default  reduce using rule 33 (function_call_1)
 
-State 317
 
-   86 link_param_name: COMMA K_NAME ASSIGN ID .
+State 122
 
-    $default  reduce using rule 86 (link_param_name)
+   34 function_call_1: K_GET_CLOCK_SPEED LP RP .
 
+    $default  reduce using rule 34 (function_call_1)
 
-State 318
 
-   85 link_param_name: COMMA K_NAME ASSIGN STRING .
+State 123
 
-    $default  reduce using rule 85 (link_param_name)
+   35 function_call_1: K_GET_AVAILABLE_MEMORY LP RP .
 
+    $default  reduce using rule 35 (function_call_1)
 
-State 319
 
-  105 job_param_affinity: COMMA K_AFFINITY ASSIGN ID .
+State 124
 
-    $default  reduce using rule 105 (job_param_affinity)
+   36 function_call_1: K_GET_MEMORY LP RP .
 
+    $default  reduce using rule 36 (function_call_1)
 
-State 320
 
-  124 array_num: LS . expression array_num_items RS
+State 125
 
-    K_RUN          shift, and go to state 5
-    K_DISCARD_JOB  shift, and go to state 6
-    ID             shift, and go to state 26
-    INT            shift, and go to state 27
-    FLOAT          shift, and go to state 28
-    LP             shift, and go to state 29
-    STRING         shift, and go to state 30
-    K_WAIT         shift, and go to state 8
+   37 function_call_1: K_PRINT_STATS LP RP .
 
-    function_call_2  go to state 32
-    expression       go to state 325
-    term_prime       go to state 36
-    term             go to state 37
-    factor           go to state 38
-    factor_prime     go to state 39
+    $default  reduce using rule 37 (function_call_1)
 
 
-State 321
+State 126
 
-  104 job_param_affinity: COMMA K_AFFINITY ASSIGN array_num .
+   13 K_FOR_EXP: K_FOR LP assign_statements SEMI bool_returning_statements SEMI . assign_statements RP
 
-    $default  reduce using rule 104 (job_param_affinity)
+    ID  shift, and go to state 45
 
+    $default  reduce using rule 66 (epsilon)
 
-State 322
+    IDEXP              go to state 22
+    IDEXP0             go to state 23
+    assign_statements  go to state 127
+    assign_statement   go to state 65
+    epsilon            go to state 66
 
-  113 cluster_param_name: COMMA K_NAME ASSIGN STRING .
 
-    $default  reduce using rule 113 (cluster_param_name)
+State 127
 
+   13 K_FOR_EXP: K_FOR LP assign_statements SEMI bool_returning_statements SEMI assign_statements . RP
 
-State 323
+    RP  shift, and go to state 128
 
-   73 processor_param_l1_memory: COMMA K_L1_MEMORY ASSIGN K_MEMORY LP memory_params RP .
 
-    $default  reduce using rule 73 (processor_param_l1_memory)
+State 128
 
+   13 K_FOR_EXP: K_FOR LP assign_statements SEMI bool_returning_statements SEMI assign_statements RP .
 
-State 324
-
-   75 processor_param_l2_memory: K_L2_MEMORY ASSIGN K_MEMORY LP memory_params . RP
-
-    RP  shift, and go to state 326
-
-
-State 325
-
-  124 array_num: LS expression . array_num_items RS
-
-    COMMA  shift, and go to state 327
-
-    $default  reduce using rule 130 (epsilon)
-
-    array_num_items  go to state 328
-    epsilon          go to state 329
-
-
-State 326
-
-   75 processor_param_l2_memory: K_L2_MEMORY ASSIGN K_MEMORY LP memory_params RP .
-
-    $default  reduce using rule 75 (processor_param_l2_memory)
-
-
-State 327
-
-  125 array_num_items: COMMA . expression array_num_items
-
-    K_RUN          shift, and go to state 5
-    K_DISCARD_JOB  shift, and go to state 6
-    ID             shift, and go to state 26
-    INT            shift, and go to state 27
-    FLOAT          shift, and go to state 28
-    LP             shift, and go to state 29
-    STRING         shift, and go to state 30
-    K_WAIT         shift, and go to state 8
-
-    function_call_2  go to state 32
-    expression       go to state 330
-    term_prime       go to state 36
-    term             go to state 37
-    factor           go to state 38
-    factor_prime     go to state 39
-
-
-State 328
-
-  124 array_num: LS expression array_num_items . RS
-
-    RS  shift, and go to state 331
-
-
-State 329
-
-  126 array_num_items: epsilon .
-
-    $default  reduce using rule 126 (array_num_items)
-
-
-State 330
-
-  125 array_num_items: COMMA expression . array_num_items
-
-    COMMA  shift, and go to state 327
-
-    $default  reduce using rule 130 (epsilon)
-
-    array_num_items  go to state 332
-    epsilon          go to state 329
-
-
-State 331
-
-  124 array_num: LS expression array_num_items RS .
-
-    $default  reduce using rule 124 (array_num)
-
-
-State 332
-
-  125 array_num_items: COMMA expression array_num_items .
-
-    $default  reduce using rule 125 (array_num_items)
+    $default  reduce using rule 13 (K_FOR_EXP)

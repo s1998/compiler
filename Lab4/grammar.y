@@ -1,4 +1,4 @@
-  %{
+%{
 #include <cstdio>
 #include <iostream>
 #include <stack>
@@ -22,11 +22,12 @@ char temp[1024];
 vector<string> errors;
 extern char* lexeme;
 extern char* yytext;
+extern int yydebug;
 
 int sp = 0;
 
 int print_parse_tree = 1;
-int print_parse_error = 0;
+int print_parse_error = 1;
 void print_parse(char* c, ...){
 
 if(print_parse_tree)
@@ -44,10 +45,13 @@ void helper()
   while(temp-- && print_parse_tree) printf("  ");
 }
 
+
 char* expected;
 extern char *yytext;
 extern int yylineno;
 extern void helper();
+struct symbolTable sym_tab;
+int current_scope;
 %}
 
 %error-verbose
@@ -136,7 +140,8 @@ extern void helper();
 %token K_INT 83
 %token K_BOOL 84
 %token K_FLOAT 85
-
+%token K_PRINT 86
+%token K_INPUT 87
 %union{
         struct node* NT; //non-terminals
 
@@ -144,28 +149,45 @@ extern void helper();
 
         vector<string>* vs;
 
-        struct terminal{  //terminals
-                        char *text;
-                        int type;
-                        int line;
-                        int length;
-        } Sval;
+        vector<int>* dim;
 
+
+        struct terminal Sval;
+
+        int integer;
 }
 
-%type <NT> statements 
-%type <NT> statement 
-%type <NT> assign_statement 
-%type <s> DType
+%type <integer> DType
 %type <vs> DList
 %type <Sval> ID
 %type <Sval> IDEXP
+%type <Sval> IDEXP0
+%type <NT> RELOPEXP
+%type <NT> statements
+%type <NT> statement
+%type <NT> function_call_1
+%type <NT> function_call_2
+%type <NT> bool_returning_statements
+%type <NT> bool_returning_statement
+%type <NT> assign_statements
+%type <NT> assign_statement
+%type <NT> expression
+%type <NT> term_prime
+%type <NT> term
+%type <NT> factor
+%type <NT> factor_prime
+%type <dim> BR_DIMLIST
+%type <dim> DIM1
+
+
 
 
 %%
 
 statements: statement statements
   {
+
+    print_st(sym_tab);
     helper(); 
     print_parse("statements: statement statements\n\n"); 
     sp += 2;
@@ -189,14 +211,17 @@ statement: assign_statement
     $$ = createnode();
     $$->children.push_back($1);
     }
-        | K_IF LP bool_returning_statements RP LB statements RB K_ELSE LB statements RB
+        | K_IF_EXP BLOCK_BODY K_ELSE BLOCK_BODY
   {
     helper(); 
     print_parse("statement:  K_IF LP bool_returning_statements RP LB statements RB K_ELSE LB statements RB\n\n"); 
     sp = 0; 
+    current_scope++;
+
+
 
   }
-        | K_WHILE LP bool_returning_statements RP LB statements RB
+        | K_WHILE_EXP BLOCK_BODY
   {
     helper(); 
     print_parse("statement:  K_WHILE LP bool_returning_statements RP LB statements RB\n\n"); 
@@ -208,7 +233,7 @@ statement: assign_statement
     print_parse("statement:  K_BEGIN statements K_END\n\n"); 
     sp = 0; 
   }
-        | K_FOR LP assign_statements SEMI bool_returning_statements SEMI assign_statements RP LB statements RB
+        | K_FOR_EXP BLOCK_BODY
   {
     helper(); 
     print_parse("statement:  K_FOR LP assign_statements SEMI bool_returning_statements SEMI assign_statements RP LB statements RB\n\n"); 
@@ -235,101 +260,98 @@ statement: assign_statement
     vector<string>& x = *$2;
     for(int i = 0; i < x.size(); i++)
     {
-      cout<<x[i]<<"----";
+      //cout<<x[i]<<"----";
+      sym_tab.symbols[sym_tab.symbols.size() - i -1].type = $1;
     }
+
   }
 
-DType : K_INT
-  {
-    helper(); 
-    print_parse("DType : K_INT\n\n"); 
-    sp = 0; 
-    string temp = "INT";
-    $$ = &temp;
-  }
-      | K_FLOAT
-  {
-    helper(); 
-    print_parse("DType : K_FLOAT\n\n"); 
-    sp = 0; 
-    string temp = "FLOAT";
-    $$ = &temp;
-  }
-      | K_BOOL
-  {
-    helper(); 
-    print_parse("DType : K_BOOL\n\n"); 
-    sp = 0; 
-    string temp = "BOOL";
-    $$ = &temp;
-  }
-      | K_PROCESSOR
-  {
-    helper(); 
-    print_parse("DType : K_PROCESSOR\n\n"); 
-    sp = 0; 
-    string temp = "PROCESSOR";
-    $$ = &temp;
-  }
-      | K_LINK
-  {
-    helper(); 
-    print_parse("DType : K_LINK\n\n"); 
-    sp = 0; 
-    string temp = "LINK";
-    $$ = &temp;
-  }
-      | K_SCHEDULER
-  {
-    helper(); 
-    print_parse("DType : K_SCHEDULER\n\n"); 
-    sp = 0; 
-    string temp = "SCHEDULER";
-    $$ = &temp;
-  }
-      | K_MEMORY
-  {
-    helper(); 
-    print_parse("DType : K_MEMORY\n\n"); 
-    sp = 0; 
-    string temp = "MEMORY";
-    $$ = &temp;
-  }
-      | K_CLUSTER
-  {
-    helper(); 
-    print_parse("DType : K_CLUSTER\n\n"); 
-    sp = 0; 
-    string temp = "CLUSTER";
-    $$ = &temp;
-  }
-      | K_JOB
-  {
-    helper(); 
-    print_parse("DType : K_JOB\n\n"); 
-    sp = 0; 
-    string temp = "JOB";
-    $$ = &temp;
-  }
+K_WHILE_EXP : K_WHILE LP bool_returning_statements RP
+{
+  current_scope++;
+  cout<<"dasddsasdsdasd";
+  
+}
+
+K_IF_EXP : K_IF LP bool_returning_statements RP{
+
+  current_scope++;
+}
+
+K_FOR_EXP : K_FOR LP assign_statements SEMI bool_returning_statements SEMI assign_statements RP
+{
+  current_scope++;
+  
+}
+
+BLOCK_BODY : LB statements RB
+{
+  helper(); 
+  print_parse("BLOCK_BODY : LB statements RB"); 
+  sp += 2;
+  cout<<"dawd";
+  pop_from_st(sym_tab,current_scope); 
+  
+  current_scope--;
+
+}
 
 DList : IDEXP COMMA DList
   {
+    
+
     helper(); 
     print_parse("DList : ID K_COMMA DList\n\n"); 
     sp += 2; 
     $3->push_back($1.text);
     $$ = $3;
+    bool temp = insert_in_st(sym_tab, $1.text, false, current_scope, $1.dim, $1.length);
+    if(debug_on)
+      std::cout<<"Insetd "<<temp<<" "<<$1.length<<" "<<endl;
+    if(!temp)
+      cout<<"Could not insert symbol "<<$1.text<<" in symbol table.";
     }
-        | IDEXP 
+        | IDEXP
+  {
+    helper(); 
+    print_parse("DList : IDEXP \n\n"); 
+    sp += 2; 
+    $$ = new vector<string>;
+    $$->push_back($1.text);
+    bool temp = insert_in_st(sym_tab, $1.text, false, current_scope, $1.dim, $1.length);
+
+
+    if(debug_on)
+      std::cout<<"Inserted "<<temp<<" "<<$1.length<<" "<<endl;
+    if(!temp)
+      cout<<"Could not insert symbol "<<$1.text<<" in symbol table.";
+    
+  }
+
+IDEXP : IDEXP0 
   {
     helper(); 
     print_parse("DList : ID \n\n"); 
     sp += 2; 
-    $$ = new vector<string>;
-    $$->push_back($1.text);
-    }
+    $$ = $1;
+    $$.length = 1;
+    $$.dim = NULL;
+  }
+  | IDEXP0 BR_DIMLIST
+  {
+    helper(); 
+    print_parse("DList : ID BR_DIMLIST\n\n"); 
+    sp += 2; 
+    $$ = $1;
+    $$.length = 1;
+    $$.dim = $2;
+    for(int i = 0; i < $2->size(); i++)
+      $$.length *= (*($2))[i];
+    if(debug_on)
+      cout<<"\n---- length : "<<$1.text<<" "<<$$.length<<endl;
+  }
 
-IDEXP : ID
+IDEXP0 : ID
   {
     helper(); 
     print_parse("DList : ID \n\n"); 
@@ -337,8 +359,115 @@ IDEXP : ID
     $$.text = (char*)malloc(sizeof(lexeme));
     strcpy($$.text, lexeme);
     $$.length = 1;
-    }
+  }
 
+BR_DIMLIST :  DIM1 
+      {
+        helper(); 
+        print_parse("DList : LS K_INT RS\n\n"); 
+        sp += 2;
+        $$ = $1;
+      }
+    | DIM1 BR_DIMLIST
+     {
+        helper(); 
+        print_parse("DList : LS K_INT RS\n\n"); 
+        sp += 2;
+        $2->push_back((*$1)[0]);
+        $$ = $2;
+      }
+
+    
+
+DIM1 : LS INT RS{
+
+        helper(); 
+        print_parse("DList : LS K_INT RS\n\n"); 
+        sp += 2;
+        $$ = new vector<int>;
+        (*$$).push_back(atoi(lexeme));
+      }
+    | LS ID RS
+      {
+        helper(); 
+        print_parse("DList : LS K_INT RS\n\n"); 
+        sp += 2;
+        bool temp;
+        terminal t;
+        temp = look_value(sym_tab, $2.text, $2.type, $2.value, &t);
+        if(t.type == type_int){
+          $$ = new vector<int>;
+          $$->push_back(*(int *)($2.value));
+        }else{
+            cout << "Dimension of array is not integer type";
+        }
+      } 
+
+
+
+DType : K_INT
+  {
+    helper(); 
+    print_parse("DType : K_INT\n\n"); 
+    sp = 0; 
+    $$ = type_int;
+  }
+      | K_FLOAT
+  {
+    helper(); 
+    print_parse("DType : K_FLOAT\n\n"); 
+    sp = 0; 
+    $$ = type_float;
+  }
+      | K_BOOL
+  {
+    helper(); 
+    print_parse("DType : K_BOOL\n\n"); 
+    sp = 0; 
+    $$ = type_bool;
+  }
+      | K_PROCESSOR
+  {
+    helper(); 
+    print_parse("DType : K_PROCESSOR\n\n"); 
+    sp = 0; 
+    $$ = type_processor;
+  }
+      | K_LINK
+  {
+    helper(); 
+    print_parse("DType : K_LINK\n\n"); 
+    sp = 0; 
+    $$ = type_link;
+  }
+      | K_SCHEDULER
+  {
+    helper(); 
+    print_parse("DType : K_SCHEDULER\n\n"); 
+    sp = 0; 
+    $$ = type_scheduler;
+  }
+      | K_MEMORY
+  {
+    helper(); 
+    print_parse("DType : K_MEMORY\n\n"); 
+    sp = 0; 
+    $$ = type_memory;
+  }
+      | K_CLUSTER
+  {
+    helper(); 
+    print_parse("DType : K_CLUSTER\n\n"); 
+    sp = 0; 
+    $$ = type_cluster;
+  }
+      | K_JOB
+  {
+    helper(); 
+    print_parse("DType : K_JOB\n\n"); 
+    sp = 0; 
+    $$ = type_job;
+  }
 
 function_call_1: K_IS_RUNNING LP RP
   {
@@ -371,29 +500,32 @@ function_call_1: K_IS_RUNNING LP RP
     sp += 2; 
   }
 
-function_call_2: K_RUN LP ID RP
+function_call_2: K_PRINT LP expression RP
   {
     helper(); 
-    print_parse("function_call_2: K_RUN LP ID RP\n\n"); 
+    print_parse("function_call_2:  K_PRINT LP expression RP\n\n"); 
+    
+    cout<<"\n\n********print called\n";
+    //cout<<"dasd";
+
+
+    if($3->type == 4)
+      cout<<*(char *)$3->value;
+    else if($3->type == 2)
+      cout<<*(float *)$3->value;
+    else if($3->type == 1)
+      cout<<*(int *)$3->value;
+    else if($3->type == 3)
+      cout<<*(bool *)$3->value; 
+     
     sp += 2; 
   }
-        | K_RUN LP array_id RP
+    | K_INPUT LP ID RP
   {
     helper(); 
-    print_parse("function_call_2:  K_RUN LP array_id RP\n\n"); 
-    sp += 2; 
-  }
-        | K_DISCARD_JOB LP expression RP
-  {
-    helper(); 
-    print_parse("function_call_2:  K_DISCARD_JOB LP expression RP\n\n"); 
-    sp += 2; 
-  }
-        | K_WAIT LP expression RP
-  {
-    helper(); 
-    print_parse("function_call_2:  K_WAIT LP expression RP\n\n"); 
-    sp += 2; 
+    print_parse("function_call_2:  K_INPUT LP RP\n\n"); 
+    sp += 2;
+
   }
 
 bool_returning_statements: bool_returning_statement L_AND bool_returning_statements
@@ -401,31 +533,57 @@ bool_returning_statements: bool_returning_statement L_AND bool_returning_stateme
     helper(); 
     print_parse("bool_returning_statements: bool_returning_statement L_AND bool_returning_statements\n\n"); 
     sp += 2; 
+    $$ = new node;
+    copy_node($$, $1);
+    bool bt = *(bool *)($1->value) && *(bool *)($3->value);
+    *(bool*)($$->value) = bt;
   }
-                       | bool_returning_statement  L_OR bool_returning_statements
+        | bool_returning_statement  L_OR bool_returning_statements
   {
     helper(); 
     print_parse("bool_returning_statements:  bool_returning_statement  L_OR bool_returning_statements\n\n"); 
     sp += 2; 
+    $$ = new node;
+    copy_node($$, $1);
+    bool bt = *(bool *)($1->value) || *(bool *)($3->value);
+    *(bool*)($$->value) = bt;
   }
                        | L_NOT bool_returning_statements
   {
     helper(); 
     print_parse("bool_returning_statements:  L_NOT bool_returning_statements\n\n"); 
     sp += 2; 
+    $$ = new node;
+    copy_node($$, $2);
+    bool bt = !*(bool *)($$->value);
+    *(bool*)($$->value) = bt;
+    
   }
                        | bool_returning_statement
   {
     helper(); 
     print_parse("bool_returning_statements:  bool_returning_statement\n\n"); 
-    sp += 2; 
+    sp += 2;
+
+    $$ = new node;
+    copy_node($$, $1);
+     
   }
 
 bool_returning_statement: expression
   {
     helper(); 
     print_parse("bool_returning_statement: expression\n\n"); 
-    sp += 2; 
+    sp += 2;
+    $$ = new node;
+    copy_node($$, $1);
+    bool bt = *(bool *)$$->value;
+    if(bt) {bt=true;$$->value=&bt;}
+    else {bt=false;$$->value=&bt;}
+    
+    $$->type = type_bool;
+
+
   }
 
 assign_statements: assign_statement COMMA assign_statements
@@ -447,74 +605,192 @@ assign_statements: assign_statement COMMA assign_statements
     sp += 2; 
   }
 
-assign_statement: ID ASSIGN expression
+assign_statement: IDEXP ASSIGN expression
   {
     helper(); 
-    print_parse("assign_statement: ID ASSIGN expression\n\n"); 
+    print_parse("assign_statement: IDEXP ASSIGN expression\n\n"); 
     sp += 2; 
+    bool temp;
+    terminal t;
+    temp = look_value(sym_tab, $1.text, $1.type, $1.value, &t);
+    if(!temp){  
+      cout<<"Variable "<<$1.text<<" not already declared. Missing from symbol  table."<<endl;
+    }
+    else if(type_coercion($1.type, $3->type, 0) == -1){
+      cout<<"Type mismatch at lineno : "<<yylineno<<".\nOperands of type : "<<$1.type<<" "<<$3->type<<$1.text<<endl;
+    }
+    else{
 
-  }
-              | ID LS INT RS ASSIGN expression
-  {
-    helper(); 
-    print_parse("assign_statement:  ID LS INT RS ASSIGN expression\n\n"); 
-    sp += 2; 
-  }
-              | ID LS ID RS ASSIGN expression
-  {
-    helper(); 
-    print_parse("assign_statement:  ID LS ID RS ASSIGN expression\n\n"); 
-    sp += 2; 
-  }
-              | ID ASSIGN constructors
-  {
-    helper(); 
-    print_parse("assign_statement:  ID ASSIGN constructors\n\n"); 
-    sp += 2; 
-  }
-              | ID LS INT RS ASSIGN constructors
-  {
-    helper(); 
-    print_parse("assign_statement:  ID LS INT RS ASSIGN constructors\n\n"); 
-    sp += 2; 
-  }
-              | ID LS ID RS ASSIGN constructors
-  {
-    helper(); 
-    print_parse("assign_statement:  ID LS ID RS ASSIGN constructors\n\n"); 
-    sp += 2; 
+          if(t.dim != NULL){
+
+            if($1.dim != NULL && $1.dim->size() == t.dim->size()){
+              int offset=0;
+              int temp =1, s = t.dim->size();
+              for(int i = 0;i < t.dim->size();i++){
+                offset += temp* (*$1.dim)[s-i-1];
+                temp *= (*t.dim)[s-i-1];
+              }
+              cout << "Array offset : " << offset << endl;
+              update_value(sym_tab,$1.text,$3->type,$3->value, offset);
+            }else{
+
+              cout << " Dimensions don't match with declared dimensions." << endl;
+              
+            }
+
+          }else{
+
+          cout<<"\n11111 :::    ";
+          print_on_type($3->type,$3->value);
+          update_value(sym_tab,$1.text,$3->type,$3->value);
+          // print_on_type(t.type,t.value);
+          // set_value(t.value, $3->value, t.type, $3->type);
+          // cout<<"dasds : "<<t.text;
+          //print_on_type(t.type,t.value);
+
+        }
+    }
   }
 
-expression: term_prime RELOP expression
+
+expression: term_prime RELOPEXP expression
   {
     helper(); 
-    print_parse("expression: term_prime RELOP expression\n\n"); 
+    print_parse("expression: term_prime RELOPEXP expression\n\n"); 
     sp += 2; 
+    $$ = new node;
+    copy_node($$, $1);
+    if(($$->type = type_coercion($$->type, $3->type)) == -1)
+      cout<<"Types mimatched : "<<$$->type<<" "<<$3->type<<" at lineno : "<<yylineno;
+    $$->type = type_bool;
+    if(!strcmp((char *)$2->value, "<="))
+      {
+        int a = *(int *)$1->value;
+        int b = *(int *)$3->value;
+        cout<<a<<" "<<b;
+        *(bool*)($$->value) = ( a <= b );}
+    else if(!strcmp((char *)$2->value, "=="));
+      //*(bool*)($$->value) = ($1->value == $3->value);
+
   }
         | term_prime
   {
     helper(); 
     print_parse("expression:  term_prime\n\n"); 
     sp += 2; 
+    $$ = new node;
+    copy_node($$, $1);
+
+        // cout<<"dwadawdwd";
+        // print_on_type($$->type,$$->value);
+
   }
 
+RELOPEXP : RELOP
+  {
+    $$ = new node;
+    $$->value = malloc(sizeof(lexeme));
+    strcpy((char *)$$->value, lexeme);
+  }
 term_prime: term PLUS term_prime
   {
     helper(); 
     print_parse("term_prime: term PLUS term_prime\n\n"); 
     sp += 2; 
+    $$ = new node;
+    copy_node($$, $1);
+    //cout<<"Daddasd :"<<$1->type<<"  "<<$3->type;
+    //cout<<"$$->type "<<$$->type;
+
+    if(($$->type = type_coercion($1->type, $3->type, 0)) > 4)
+      cout<<"Types mimatched : "<<$$->type<<" "<<$3->type<<" at lineno : "<<yylineno;
+
+    if(debug_on)
+     cout<<"line 658 : "<<$$->type<<" "<<$1->type<<" "<<$3->type<<"\n";
+
+    if($$->type == 4)
+      $$->value = new string(strcat((char*)$1->value, (char*)$3->value));
+    else 
+    {
+    if($$->type == 2)
+      {
+        float ft = 0 ;
+        if($1->type == type_int )
+          ft += *(int *)$1->value;
+
+        else if($1->type == type_bool )
+          ft += *(bool *)$1->value;
+
+        else if($1->type == type_float )
+          ft += *(float *)$1->value;
+
+
+        if($3->type == type_int )
+          ft += *(int *)$3->value;
+
+        else if($3->type == type_bool )
+          ft += *(bool *)$3->value;
+
+        else if($3->type == type_float )
+          ft += *(float *)$3->value;
+
+        *(float *)$$->value = ft;
+      }
+    else if($$->type == 1)
+     {
+       int it = *(int *)$1->value + *(int*)$3->value;
+       *(int *)$$->value = it;
+     }
+    else if($$->type == 3)
+      {
+
+        bool bt = *(bool*)$1->value + *(bool*)$3->value;
+        *(bool*)$$->value = bt;
+      }
+    }
+    if(debug_on)
+      {
+        cout<<"Doing addition, type : "<<$$->type;
+        print_on_type($1->type, $1->value); cout<<" ";
+        print_on_type($3->type, $3->value); cout<<" ";
+        print_on_type($$->type, $$->value); cout<<" ";
+        cout<<endl;
+      }
+
   }
         | term MINUS term_prime
   {
     helper(); 
     print_parse("term_prime:  term MINUS term_prime\n\n"); 
     sp += 2; 
+    $$ = new node;
+    copy_node($$, $1);
+    if(($$->type = type_coercion($$->type, $3->type)) == -1)
+      cout<<"Types mimatched : "<<$$->type<<" "<<$3->type<<" at lineno : "<<yylineno;
+   
+    if($$->type == 2)
+      {
+        float ft = *(float *)$1->value - *(float *)$3->value;
+        *(float *)$$->value = ft;
+      }
+    else if($$->type == 1)
+     {
+       int it = *(int *)$1->value - *(int*)$3->value;
+       *(int *)$$->value = it;
+     }
+    else if($$->type == 3)
+      {
+        bool bt = *(bool*)$1->value - *(bool*)$3->value;
+        *(bool*)$$->value = bt;
+      }
   }
         | term
   {
     helper(); 
     print_parse("term_prime:  term\n\n"); 
     sp += 2; 
+    $$ = new node;
+    copy_node($$, $1);
   }
 
 term: factor MULT term
@@ -522,18 +798,122 @@ term: factor MULT term
     helper(); 
     print_parse("term: factor MULT term\n\n"); 
     sp += 2; 
+    $$ = new node;
+    copy_node($$, $1);
+    if(($$->type = type_coercion($$->type, $3->type)) == -1)
+      cout<<"Types mimatched : "<<$$->type<<" "<<$3->type<<" at lineno : "<<yylineno;
+
+    if($$->type == 2)
+      {
+        float ft = 1;
+        if($1->type == type_int )
+          ft *= *(int *)$1->value;
+
+        else if($1->type == type_bool )
+          ft *= *(bool *)$1->value;
+
+        else if($1->type == type_float )
+          ft *= *(float *)$1->value;
+
+
+        if($3->type == type_int )
+          ft *= *(int *)$3->value;
+
+        else if($3->type == type_bool )
+          ft *= *(bool *)$3->value;
+
+        else if($3->type == type_float )
+          ft *= *(float *)$3->value;
+
+        *(float *)$$->value = ft;
+      }
+    else if($$->type == 1)
+     {
+       int it = *(int *)$1->value * *(int*)$3->value;
+       *(int *)$$->value = it;
+     }
+    else if($$->type == 3)
+      {
+
+        bool bt = *(bool*)$1->value * *(bool*)$3->value;
+        *(bool*)$$->value = bt;
+      }
+      if(debug_on)
+      {
+        cout<<"Doing multiplication, type : "<<$$->type;
+        print_on_type($1->type, $1->value); cout<<" ";
+        print_on_type($3->type, $3->value); cout<<" ";
+        print_on_type($$->type, $$->value); cout<<" ";
+        cout<<endl;
+      }
   }
   | factor DIV term
   {
     helper(); 
     print_parse("term:  factor DIV term\n\n"); 
     sp += 2; 
+    $$ = new node;
+    copy_node($$, $1);
+    if(($$->type = type_coercion($$->type, $3->type)) == -1)
+      cout<<"Types mimatched : "<<$$->type<<" "<<$3->type<<" at lineno : "<<yylineno;
+    if($$->type == 2)
+      {
+        float ft = 1 ;
+
+        cout<<" wdsdas :: "<<*(int *)$1->value;
+        if($1->type == type_int )
+          ft *= *(int *)$1->value;
+
+        else if($1->type == type_bool )
+          ft *= *(bool *)$1->value;
+
+        else if($1->type == type_float )
+          ft *= *(float *)$1->value;
+
+        cout<<"\n1: "<<ft;
+
+        if($3->type == type_int )
+          ft /= *(int *)$3->value;
+
+        else if($3->type == type_bool )
+          ft /= *(bool *)$3->value;
+
+        else if($3->type == type_float )
+          ft /= *(float *)$3->value;
+
+        cout<<"\n2: "<<ft;
+
+        *(float *)$$->value = ft;
+      }
+    else if($$->type == 1)
+     {
+       int it = *(int *)$1->value / *(int*)$3->value;
+       *(int *)$$->value = it;
+     }
+    else if($$->type == 3)
+      {
+
+        bool bt = *(bool*)$1->value / *(bool*)$3->value;
+        *(bool*)$$->value = bt;
+      }
+
+      if(debug_on)
+      {
+        cout<<"Doing division, type : "<<$$->type<<" "<<$1->type<<" "<<$3->type;
+        // cout<<" "<<*(int *)$1->value<<" ";
+        print_on_type($1->type, $1->value); cout<<" ";
+        print_on_type($3->type, $3->value); cout<<" ";
+        print_on_type($$->type, $$->value); cout<<" ";
+        cout<<endl;
+      }
   }
   | factor
   {
     helper(); 
     print_parse("term:  factor\n\n"); 
     sp += 2; 
+    $$ = new node;
+    copy_node($$, $1);
   }
 
 factor: factor_prime
@@ -541,493 +921,85 @@ factor: factor_prime
     helper(); 
     print_parse("factor: factor_prime\n\n"); 
     sp += 2; 
+    $$ = new node;
+    copy_node($$, $1);
   }
 
 factor_prime: ID DOT function_call_1
-  {sp = 0; helper(); sp += 2; print_parse("factor_prime: ID DOT function_call_1\n\n");  }
+  {
+    sp = 0; 
+    helper(); 
+    sp += 2; print_parse("factor_prime: ID DOT function_call_1\n\n");  
+  }
           | LP expression RP
-  {sp = 0; helper(); sp += 2; print_parse("factor_prime:  LP expression RP\n\n");  }
+  {
+    sp = 0; 
+    helper(); 
+    sp += 2; print_parse("factor_prime:  LP expression RP\n\n");  
+    $$ = new node;
+    $$->type = $2->type;
+    if(debug_on)
+      cout<<endl<<$2->value<<endl;
+    $$->value = malloc(sizeof($2->value));
+    $$->value = $2->value;
+  }
           | INT
-  {sp = 0; helper(); sp += 2; print_parse("factor_prime:  INT\n\n");  }
+  {
+    sp = 0; 
+    helper(); 
+    sp += 2; print_parse("factor_prime:  INT\n\n");  
+    $$ = new node;
+    $$->type = type_int;
+    if(debug_on)
+      cout<<lexeme<<endl;
+    $$->value = new int(atoi(lexeme));
+  }
           | FLOAT
-  {sp = 0; helper(); sp += 2; print_parse("factor_prime:  FLOAT\n\n");  }
+  {
+    sp = 0; 
+    helper(); 
+    sp += 2; print_parse("factor_prime:  FLOAT\n\n");  
+    $$ = new node;
+    $$->type = type_float;
+    if(debug_on)
+      cout<<lexeme<<endl;
+    $$->value = new float(atof(lexeme));
+  }
           | STRING
-  {sp = 0; helper(); sp += 2; print_parse("factor_prime: STRING\n\n"); }
+  {
+    sp = 0; 
+    helper(); 
+    sp += 2; print_parse("factor_prime: STRING\n\n"); 
+    $$ = new node;
+    $$->type = type_string;
+    if(debug_on)
+      cout<<lexeme<<endl;
+    $$->value = new string(lexeme);
+  }
           | function_call_2
-  {sp = 0; helper(); sp += 2; print_parse("factor_prime: function_call/_2\n\n"); } 
-          | ID
-  {sp = 0; helper(); sp += 2; print_parse("factor_prime: ID\n\n"); }
+  {
+    sp = 0; 
+    helper(); 
+    sp += 2; print_parse("factor_prime: function_call/_2\n\n"); }
 
-constructors: K_PROCESSOR LP processor_params RP
-  {
-    helper(); 
-    print_parse("constructors: K_PROCESSOR LP processor_params RP\n\n"); 
-    sp += 2; 
-  }
-            | K_LINK LP link_params RP
-  {
-    helper(); 
-    print_parse("constructors: K_LINK LP link_params RP\n\n"); 
-    sp += 2; 
-  }
-            | K_MEMORY LP memory_params RP
-  {
-    helper(); 
-    print_parse("constructors: K_MEMORY LP memory_params RP\n\n"); 
-    sp += 2; 
-  }
-            | K_JOB LP job_params RP
-  {
-    helper(); 
-    print_parse("constructors: K_JOB LP job_params RP\n\n"); 
-    sp += 2; 
-  }
-            | K_CLUSTER LP cluster_params RP
-  {
-    helper(); 
-    print_parse("constructors: K_CLUSTER LP cluster_params RP\n\n"); 
-    sp += 2; 
-  }
-            | K_SCHEDULER LP scheduler_params RP
-  {
-    helper(); 
-    print_parse("constructors: K_SCHEDULER LP scheduler_params RP\n\n"); 
-    sp += 2; 
-  }
-
-processor_params : processor_param_isa processor_param_clock_speed processor_param_l1_memory 
-  {
-    helper(); 
-    print_parse("processor_params : processor_param_isa processor_param_clock_speed processor_param_l1_memory \n\n"); 
-    sp += 2; 
-  }
-              | processor_param_isa processor_param_clock_speed  processor_param_l1_memory COMMA processor_param_l2_memory COMMA processor_param_name
-  {
-    helper(); 
-    print_parse("processor_params : processor_param_isa processor_param_clock_speed  processor_param_l1_memory COMMA processor_param_l2_memory COMMA processor_param_name\n\n"); 
-    sp += 2; 
-  }
-              | processor_param_isa processor_param_clock_speed  processor_param_l1_memory COMMA processor_param_l2_memory 
-  {
-    helper(); 
-    print_parse("processor_params : processor_param_isa processor_param_clock_speed  processor_param_l1_memory COMMA processor_param_l2_memory \n\n"); 
-    sp += 2; 
-  }
-              | processor_param_isa processor_param_clock_speed processor_param_l1_memory COMMA processor_param_name 
-  {
-    helper(); 
-    print_parse("processor_params : processor_param_isa processor_param_clock_speed processor_param_l1_memory COMMA processor_param_name \n\n"); 
-    sp += 2; 
-  }
-
-link_params : link_param_start_point  link_param_end_point  link_param_bandwidth  link_param_channel_capacity  link_param_name
-{
-  helper(); 
-  print_parse("link_params : link_param_start_point  link_param_end_point  link_param_bandwidth  link_param_channel_capacity  link_param_name \n\n"); 
-  sp += 2; 
-}
-
-memory_params : memory_param_memory_type  memory_param_mem_size  memory_param_name
-  {
-    helper(); 
-    print_parse("memory_params : memory_param_memory_type  memory_param_mem_size  memory_param_name\n\n"); 
-    sp += 2; 
-  }
-
-job_params : job_param_job_id  job_param_flops_required  job_param_deadline  job_param_mem_required  job_param_affinity
-  {
-    helper(); 
-    print_parse("job_params : job_param_job_id  job_param_flops_required  job_param_deadline  job_param_mem_required  job_param_affinity\n\n"); 
-    sp += 2; 
-  }
-
-cluster_params :  cluster_param_processors  cluster_param_topology  cluster_param_link_bandwidth  cluster_param_link_capacity  cluster_param_name
-  {
-    helper(); 
-    print_parse("cluster_params :  cluster_param_processors  cluster_param_topology  cluster_param_link_bandwidth  cluster_param_link_capacity  cluster_param_name\n\n"); 
-    sp += 2; 
-  }
-
-scheduler_params :  scheduler_param_jobs  scheduler_param_processors scheduler_param_clusters  scheduler_param_algo 
-  {
-    helper(); 
-    print_parse("scheduler_params :  scheduler_param_jobs  scheduler_param_processors scheduler_param_clusters scheduler_param_algo \n\n"); 
-    sp += 2; 
-  }
-
-processor_param_isa : K_ISA ASSIGN ISA_values
-  |ISA_values
-  {
-    helper(); 
-    print_parse("processor_param_isa : K_ISA ASSIGN ISA_values\n\n"); 
-    sp += 2; 
-  }
-
-ISA_values : K_ARM
-  {
-    helper(); 
-    print_parse("ISA_values : K_ARM\n\n"); 
-    sp += 2; 
-  }
-            | K_AMD
-  {
-    helper(); 
-    print_parse("ISA_values : K_AMD\n\n"); 
-     sp += 2; 
-    } 
-            | K_CDC
-  {
-    helper(); 
-    print_parse("ISA_values : K_CDC\n\n"); 
-    sp += 2; 
-  }
-            | K_MIPS
-  {
-    helper(); 
-    print_parse("ISA_values : K_MIPS\n\n"); 
-    sp += 2; 
-  }
-
-processor_param_clock_speed :  COMMA K_CLOCK_SPEED COLON expression
-  {
-    helper(); 
-    print_parse("processor_param_clock_speed :  COMMA K_CLOCK_SPEED COLON expression\n\n"); 
-    sp += 2; 
-  }
-
-processor_param_l1_memory : COMMA K_L1_MEMORY ASSIGN ID
-  {
-    helper(); 
-    print_parse("processor_param_l1_memory : COMMA K_L1_MEMORY ASSIGN ID\n\n"); 
-    sp += 2; 
-  }
-                  | COMMA K_L1_MEMORY ASSIGN K_MEMORY LP memory_params RP
-  {
-    helper(); 
-    print_parse("processor_param_l1_memory : COMMA K_L1_MEMORY ASSIGN K_MEMORY LP memory_params RP\n\n"); 
-    sp += 2; 
-  }
-
-processor_param_l2_memory :  K_L2_MEMORY ASSIGN ID
-  {
-    helper(); 
-    print_parse("processor_param_l2_memory :  K_L2_MEMORY ASSIGN ID\n\n"); 
-    sp += 2; 
-  }
-                      |  K_L2_MEMORY ASSIGN K_MEMORY LP memory_params RP
-  {
-    helper(); 
-    print_parse("processor_param_l2_memory :  K_L2_MEMORY ASSIGN K_MEMORY LP memory_params RP\n\n"); 
-    sp += 2; 
-  }
-processor_param_name : K_NAME ASSIGN STRING 
-  {
-    helper(); 
-    print_parse("processor_param_name : K_NAME ASSIGN STRING \n\n"); 
-    sp += 2; 
-  }
-
-
-link_param_start_point : K_START_POINT ASSIGN STRING 
-  {
-    helper(); 
-    print_parse("link_param_start_point : K_START_POINT ASSIGN STRING \n\n"); 
-    sp += 2; 
-  }
-    | K_START_POINT ASSIGN ID 
-  {
-    helper(); 
-    print_parse("link_param_start_point :K_START_POINT ASSIGN ID \n\n"); 
-     sp += 2;}
-
-link_param_end_point : COMMA K_END_POINT ASSIGN STRING
-  {
-    helper(); 
-    print_parse("link_param_end_point : COMMA K_END_POINT ASSIGN STRING\n\n"); 
-    sp += 2; 
-  }
-    | COMMA K_END_POINT ASSIGN ID
-  {
-    helper(); 
-    print_parse("link_param_end_point :COMMA K_END_POINT ASSIGN ID\n\n"); 
-    sp += 2;}
-
-link_param_bandwidth : COMMA K_BANDWIDTH ASSIGN expression
-  {
-    helper(); 
-    print_parse("link_param_bandwidth : COMMA K_BANDWIDTH ASSIGN expression\n\n"); 
-    sp += 2; 
-  }
-    | COMMA expression
-  {
-    helper(); 
-    print_parse("link_param_bandwidth: COMMA expression\n\n"); 
-    sp += 2;}
-
-link_param_channel_capacity : COMMA K_CHANNEL_CAPACITY ASSIGN expression
-  {
-    helper(); 
-    print_parse("link_param_channel_capacity : COMMA K_CHANNEL_CAPACITY ASSIGN expression\n\n"); 
-    sp += 2; 
-  }
-    | COMMA expression
-  {
-    helper(); 
-    print_parse("link_param_channel_capacity : COMMA expression\n\n"); 
-    sp += 2;}
-
-link_param_name : COMMA K_NAME ASSIGN STRING 
-  {
-    helper(); 
-    print_parse("link_param_name : COMMA K_NAME ASSIGN STRING \n\n"); 
-    sp += 2; 
-  }
-    | COMMA K_NAME ASSIGN ID 
-  {
-    helper(); 
-    print_parse("link_param_name : COMMA K_NAME ASSIGN ID \n\n"); 
-    sp += 2; 
-  }
-    | epsilon
-  {
-    helper(); 
-    print_parse("link_param_name :epsilon\n\n"); 
-    sp += 2;}
-
-
-memory_param_memory_type : K_MEMORY_TYPE ASSIGN memory_type_values
-  {
-    helper(); 
-    print_parse("memory_param_memory_type : K_MEMORY_TYPE ASSIGN memory_type_values\n\n"); 
-    sp += 2; 
-  }
-memory_param_mem_size : COMMA K_MEM_SIZE ASSIGN expression
-  {
-    helper(); 
-    print_parse("memory_param_mem_size : COMMA K_MEM_SIZE ASSIGN expression\n\n"); 
-    sp += 2; 
-  }
-memory_param_name : COMMA K_NAME ASSIGN STRING
-  {
-    helper(); 
-    print_parse("memory_param_name : COMMA K_NAME ASSIGN STRING\n\n"); 
-    sp += 2; 
-  }
-    | COMMA K_NAME ASSIGN ID
-  {
-    helper(); 
-    print_parse("memory_param_name : COMMA K_NAME ASSIGN ID\n\n"); 
-    sp += 2; 
-  }
-    | epsilon
-  {
-    helper(); 
-    print_parse("memory_param_name :epsilon\n\n"); 
-    sp += 2;}
-
-
-memory_type_values : K_PRIMARY
-  {
-    helper(); 
-    print_parse("memory_type_values : K_PRIMARY\n\n"); 
-    sp += 2; 
-  }
-    | K_SECONDARY
-  {
-    helper(); 
-    print_parse("memory_type_values :K_SECONDARY\n\n"); 
-    sp += 2; 
-  } 
-    | K_CACHE
-  {
-    helper(); 
-    print_parse("memory_type_values :K_SECONDARYK_CACHE\n\n"); 
-    sp += 2; 
-  }
-
-job_param_job_id : K_JOB_ID ASSIGN expression
-  {
-    helper(); 
-    print_parse("job_param_job_id : K_JOB_ID ASSIGN expression\n\n"); 
-    sp += 2; 
-  }
-    | COMMA expression
-job_param_flops_required : COMMA K_FLOPS_REQUIRED ASSIGN expression
-  {
-    helper(); 
-    print_parse("job_param_flops_required : COMMA K_FLOPS_REQUIRED ASSIGN expression\n\n"); 
-    sp += 2; 
-  }
-    | COMMA expression
-job_param_deadline : COMMA K_DEADLINE ASSIGN expression
-  {
-    helper(); 
-    print_parse("job_param_deadline : COMMA K_DEADLINE ASSIGN expression\n\n"); 
-    sp += 2; 
-  }
-    | COMMA expression
-job_param_mem_required : COMMA K_MEM_REQUIRED ASSIGN expression
-  {
-    helper(); 
-    print_parse("job_param_mem_required : COMMA K_MEM_REQUIRED ASSIGN expression\n\n"); 
-    sp += 2; 
-  }
-    | COMMA expression
-job_param_affinity : COMMA K_AFFINITY ASSIGN array_num
-  {
-    helper(); 
-    print_parse("job_param_affinity : COMMA K_AFFINITY ASSIGN array_num\n\n"); 
-    sp += 2; 
-  }
-    | COMMA K_AFFINITY ASSIGN ID
-
-
-cluster_param_processors : K_PROCESSORS ASSIGN array_id
-  {
-    helper(); 
-    print_parse("cluster_param_processors : K_PROCESSORS ASSIGN array_id\n\n"); 
-    sp += 2; 
-  }
-    | K_PROCESSORS ASSIGN ID
-cluster_param_topology : COMMA K_TOPOLOGY ASSIGN STRING
-  {
-    helper(); 
-    print_parse("cluster_param_topology : COMMA K_TOPOLOGY ASSIGN STRING\n\n"); 
-    sp += 2; 
-  }
-cluster_param_link_bandwidth : COMMA K_LINK_BANDWIDTH ASSIGN expression
-  {
-    helper(); 
-    print_parse("cluster_param_link_bandwidth : COMMA K_LINK_BANDWIDTH ASSIGN expression\n\n"); 
-    sp += 2; 
-  }
-    | COMMA expression
-cluster_param_link_capacity : COMMA K_LINK_CAPACITY ASSIGN expression
-  {
-    helper(); 
-    print_parse("cluster_param_link_capacity : COMMA K_LINK_CAPACITY ASSIGN expression\n\n"); 
-    sp += 2; 
-  }
-    | COMMA expression
-cluster_param_name : COMMA K_NAME ASSIGN STRING
-  {
-    helper(); 
-    print_parse("cluster_param_name : COMMA K_NAME ASSIGN STRING\n\n"); 
-    sp += 2; 
-  }
-    | epsilon
-  {
-    helper(); 
-    print_parse("cluster_param_name :  epsilon\n\n"); 
-    sp += 2; 
-  }
-
-scheduler_param_jobs : K_JOBS ASSIGN array_id
-  {
-    helper(); 
-    print_parse("scheduler_param_jobs : K_JOBS ASSIGN array_id\n\n"); 
-    sp += 2; 
-  }
-    | K_JOBS ASSIGN ID
-  {
-    helper(); 
-    print_parse("scheduler_param_jobs :  K_JOBS ASSIGN ID\n\n"); 
-    sp += 2; 
-  }
-scheduler_param_processors : COMMA K_PROCESSORS ASSIGN array_id
-  {
-    helper(); 
-    print_parse("scheduler_param_processors : COMMA K_PROCESSORS ASSIGN array_id\n\n"); 
-    sp += 2; 
-  }
-    | COMMA K_PROCESSORS ASSIGN ID
-  {
-    helper(); 
-    print_parse("scheduler_param_processors :  COMMA K_PROCESSORS ASSIGN ID\n\n"); 
-    sp += 2; 
-  }
-scheduler_param_clusters : COMMA K_CLUSTERS ASSIGN array_id
-  {
-    helper(); 
-    print_parse("scheduler_param_clusters : COMMA K_CLUSTERS ASSIGN array_id\n\n"); 
-    sp += 2; 
-  }
-    | COMMA K_CLUSTERS ASSIGN ID
-  {
-    helper(); 
-    print_parse("scheduler_param_clusters :  COMMA K_CLUSTERS ASSIGN ID\n\n"); 
-    sp += 2; 
-  }
-scheduler_param_algo : COMMA K_ALGO ASSIGN algo_type_values
-  {
-    helper(); 
-    print_parse("scheduler_param_algo : COMMA K_ALGO ASSIGN algo_type_values\n\n"); 
-    sp += 2; 
-  }
-
-algo_type_values : K_FCFS
-  {
-    helper(); 
-    print_parse("algo_type_values : K_FCFS\n\n"); 
-    sp += 2; 
-  }
-    | K_SJN
-  {
-    helper(); 
-    print_parse("algo_type_values :  K_SJN\n\n"); 
-    sp += 2; 
-  }
-    | K_SRT
-  {
-    helper(); 
-    print_parse("algo_type_values :  K_SRT\n\n"); 
-    sp += 2; 
-  }
-    | K_RRS
-  {
-    helper(); 
-    print_parse("algo_type_values :  K_RRS\n\n"); 
-    sp += 2; 
-  }
-
-array_num : LS expression array_num_items RS
-  {
-    helper(); 
-    print_parse("array_num : LS expression array_num_items RS\n\n"); 
-    sp += 2; 
-  }
-
-array_num_items : COMMA expression array_num_items
-  {
-    helper(); 
-    print_parse("array_num_items : COMMA expression array_num_items\n\n"); 
-    sp += 2; 
-  }
-  | epsilon
-  {
-    helper(); 
-    print_parse("array_num_items :  epsilon\n\n"); 
-    sp += 2; 
-  }
-
-array_id : LS ID array_id_items RS
-  {
-    helper(); 
-    print_parse("array_id : LS ID array_id_items RS\n\n"); 
-    sp += 2; 
-  }
-
-array_id_items : COMMA ID array_id_items
-  {
-    helper(); 
-    print_parse("array_id_items : COMMA ID array_id_items\n\n"); 
-    sp += 2; 
-  }
-  | epsilon
-  {
-    helper(); 
-    print_parse("array_id_items :  epsilon\n\n"); 
-    sp += 2; 
+          | IDEXP
+  {
+    sp = 0; 
+    helper(); 
+    sp += 2; print_parse("factor_prime: ID\n\n"); 
+    $$ = new node;
+    bool temp;
+    //cout<<$1.text<<endl;
+    terminal t;
+    temp = look_value(sym_tab, $1.text, $$->type, $$->value, &t);
+    //cout<<t.value;
+    if(!temp)
+      cout<<"Use of non-declared variable : "<<$1.text<<"."<<endl;
+    else
+      $$->value = t.value;
+    if(debug_on)
+      cout<<"Found value : "<<*(int *)t.value<<" for "<<lexeme<<".\n";
+      //return -1;
   }
 
 epsilon: 
@@ -1039,17 +1011,25 @@ int error_count = 0;
 
 
 int main(int argc, char *argv[]) {
-    if (argc!= 2) {
+    sym_tab.scope = 0;
+    current_scope = 0;
+    yydebug = 0;
+
+    if (argc < 2) {
         cout <<"Usage: <command> filename"<<endl;
         return 1;
     }
+    if (argc == 3)
+      debug_on = atoi(argv[2]);
+      
     FILE *myfile = fopen(argv[1], "r");
     if (!myfile) {
         cout << "I can't open "<<argv[1]<< endl;
         return -1;
     }
-    //yyin = myfile;
-
+    yyin = myfile;
+    yyparse();
+/*
     do {
         fgets(temp, 1024, myfile);
         YY_BUFFER_STATE buffer =  yy_scan_string(temp);
@@ -1057,16 +1037,16 @@ int main(int argc, char *argv[]) {
         yy_delete_buffer(buffer);
         //cout<<endl<<endl<<endl<<temp<<endl<<endl<<endl<<endl<<endl;
     }while (!feof(myfile));
+    */
 
+    print_st(sym_tab);
     if(error_count == 0)
       print_parse("yyparse() completed once\n\n\n\n\n\n");
     else
       cout<<"\n Errors found : "<<error_count<<endl<<endl;
-    
 }
 
 void yyerror(const char *s) {
-
   if(print_parse_error)
     {
       cout << "\033[1;31m Parse error( " << s << " ) at line : "<< yylineno<<" found \""<<yytext<<"\"\033[0m"<<endl;

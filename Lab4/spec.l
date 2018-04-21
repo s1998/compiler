@@ -81,27 +81,30 @@ name return K_NAME;
 \'secondary\'|\"secondary\" return K_SECONDARY ;
 \'cache\'|\"cache\" return K_CACHE ;
 
+print return K_PRINT;
+input return K_INPUT;
+
 [a-zA-Z][a-zA-Z0-9_]*  { lexeme=strdup(yytext); return ID; }
-[0-9]+ return INT;
-[0-9]+(\.[0-9]+)? return FLOAT;
+[0-9]+ { lexeme=strdup(yytext); return INT; }
+[0-9]+(\.[0-9]+)? { lexeme=strdup(yytext); return FLOAT; }
 \( return LP;
 \) return RP;
-\{ return LB;
+\{  return LB;
 \} return RB;
 \"[^\"]*\"|\'[^\']*\' return STRING;
-\[ return LS; 
+\[ {printf("\najbszxjszx\n"); return LS;} 
 \] return RS;
 \+ return PLUS;
 \- return MINUS;
 \* return MULT;
 \/ return DIV;
-\< return RELOP;
-\> return RELOP;
-\<= return RELOP;
-\>= return RELOP;
+\<  { lexeme=strdup(yytext); return RELOP; }
+\>  { lexeme=strdup(yytext); return RELOP; }
+\<=  { printf("<= sadasdasdasdasa\n\n");lexeme=strdup(yytext); return RELOP; }
+\>=  { lexeme=strdup(yytext); return RELOP; }
 , return COMMA;
 \; return SEMI;
-== return RELOP;
+==  { lexeme=strdup(yytext); return RELOP; }
 =  return ASSIGN ;
 \&\& return L_AND;
 \|\| return L_OR;

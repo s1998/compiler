@@ -83,3 +83,5 @@
 	#define K_INT 83
 	#define K_BOOL 84
 	#define K_FLOAT 85
+	#define K_PRINT 86
+	#define K_INPUT 87
